@@ -88,7 +88,7 @@ const tel = `tel:${club.telephone.replace(/\s/g, '')}`;
   @media (min-width: 900px) {
     .intro { position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 28px; border-radius: 0; color: #fff; overflow: hidden; isolation: isolate;
       background: linear-gradient(180deg, rgba(10,18,31,.05) 20%, rgba(10,18,31,.88) 100%), var(--img) center / cover no-repeat, var(--ink); min-height: 100%; }
-    .intro .eyebrow { color: #ffc59e; }
+    .intro .eyebrow { color: var(--sun); }
     .intro h1 { color: #fff; }
     .accroche { color: rgba(255,255,255,.88); }
     .cta-large { display: flex; margin-top: 18px; }
@@ -136,7 +136,7 @@ const tel = `tel:${club.telephone.replace(/\s/g, '')}`;
   .bandeau-cadeau { display: block; background: var(--ink); color: #fff; text-decoration: none; transition: background-color .2s; }
   .bandeau-cadeau:hover { background: #17263d; color: #fff; }
   .bandeau-cadeau .container { display: flex; align-items: center; gap: 12px; padding-top: 10px; padding-bottom: 10px; }
-  .bandeau-cadeau :global(svg) { flex: none; width: 20px; height: 20px; color: #ffb48a; }
+  .bandeau-cadeau :global(svg) { flex: none; width: 20px; height: 20px; color: var(--sun); }
   .bc-texte { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; min-width: 0; font-size: .92rem; }
   .bc-texte b { font-family: var(--font-title); font-weight: 600; font-size: 1.02rem; }
   .bc-detail { color: rgba(255,255,255,.75); }

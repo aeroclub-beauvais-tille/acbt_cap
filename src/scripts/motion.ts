@@ -165,8 +165,8 @@ function images() {
   document.querySelectorAll<HTMLElement>('[data-clip]').forEach((el) => {
     gsap.fromTo(
       el,
-      { clipPath: 'inset(100% 0% 0% 0% round 20px)' },
-      { clipPath: 'inset(0% 0% 0% 0% round 20px)', duration: 1.6, ease: 'expo.inOut', scrollTrigger: { trigger: el, start: 'top 85%', once: true } },
+      { clipPath: 'inset(100% 0% 0% 0% round 0px)' },
+      { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 1.6, ease: 'expo.inOut', scrollTrigger: { trigger: el, start: 'top 85%', once: true } },
     );
   });
 
