@@ -301,7 +301,8 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
     .parcours li:first-child { border-top-width: 3px; }
     .parcours li::before { font-size: 1.7rem; margin: 0; }
     .p-photo { min-height: 0; aspect-ratio: 4 / 3; }
-    .seg { grid-auto-flow: row; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+    /* Toujours sur une ligne : pas de case vide quand les boutons passent à la ligne */
+    .seg button { font-size: .88rem; padding: 0 6px; }
     .resultat { grid-template-columns: 1fr; }
     .resultat .btn { justify-self: stretch; }
     .avions { grid-template-columns: 1fr 1fr; gap: 10px; }
