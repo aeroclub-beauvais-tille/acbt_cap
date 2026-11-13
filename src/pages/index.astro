@@ -1,0 +1,312 @@
+---
+import { photo } from '../lib/photo';
+import Base from '../layouts/Base.astro';
+import Metar from '../components/Metar.astro';
+import { getCollection } from 'astro:content';
+import club from '../data/club.json';
+import pages from '../data/pages.json';
+import t from '../data/tarifs.json';
+import f from '../data/formations.json';
+import s from '../data/simulateur.json';
+import { url, asset, tarifEnVigueur } from '../lib/utils';
+
+const avions = (await getCollection('avions', (a) => a.data.actif)).sort((a, b) => a.data.ordre - b.data.ordre);
+const annees = new Date().getFullYear() - 1979;
+const pg = pages.accueil;
+const hero = pg.diaporama[0];
+const nf = (x: number) => x.toLocaleString('fr-FR');
+const des = Math.min(...t.formules.flatMap((x) => x.prix.map((p) => p.prix)));
+// Photos des trois formules de baptême (dans l'ordre de la page Tarifs)
+const photosFormules = ['/uploads/avions/IMG-20240913-WA0013.jpg', '/uploads/avions/dr400-120-01.jpg', '/uploads/avions/20250407_160705.jpg'];
+const vedette = t.formules.findIndex((x) => x.prix.length === 1);
+const acces = [
+  { titre: pg.cartes[0]?.titre, texte: `En passager ou aux commandes, dès ${nf(des)} €`, href: '#bapteme' },
+  { titre: pg.cartes[1]?.titre, texte: 'Votre budget de formation en une minute', href: '#pilote' },
+  { titre: pg.cartes[2]?.titre, texte: pg.cartes[2]?.texte, href: '/club/flotte' },
+];
+
+// Mini simulateur de l'accueil : mêmes données que le simulateur complet de la page « Devenir pilote ».
+const ecole = avions.map((a) => ({ a, t: tarifEnVigueur(a.data.tarifs).actuel })).find((x) => x.t?.prix_instruction);
+const ad = t.adhesion;
+const jeune = ad.colonnes.find((c) => /moins/i.test(c.public) && c.mise_en_avant) ?? ad.colonnes[0];
+const adulte = ad.colonnes.find((c) => !/moins/i.test(c.public)) ?? ad.colonnes[ad.colonnes.length - 1];
+const aide = (cle: string) => t.objectif_pilote?.lignes.find((l) => l.simulateur === cle)?.montant ?? 0;
+const mini = {
+  double: ecole?.t?.prix_instruction ?? 0,
+  solo: ecole?.t?.prix_heure ?? 0,
+  adh: { jeune: jeune.cotisation_acbt + ad.cotisation_ffa, adulte: adulte.cotisation_acbt + ad.cotisation_ffa },
+  fournitures: t.divers.filter((d) => d.simulateur).reduce((n, d) => n + (parseFloat(String(d.prix).replace(/\s/g, '').replace(',', '.')) || 0), 0),
+  aides: aide('lacher') + aide('licence'),
+  licences: Object.fromEntries(s.licences.map((l) => [l.code, [l.heures_double, l.heures_solo]])),
+  rythmes: Object.fromEntries(s.rythmes.map((r) => [r.libelle, r.heures_par_mois])),
+};
+const aidesMax = t.objectif_pilote?.intro.match(/([\d\s]+)\s*€/)?.[1]?.trim();
+const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M2 9h13M10 4l5 5-5 5"/></svg>';
+---
+<Base title="Accueil">
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'SportsClub', name: club.nom, alternateName: club.sigle,
+    url: new URL(url('/'), Astro.site).href, telephone: club.telephone, email: club.email, foundingDate: '1979',
+    image: new URL(asset('/partage.jpg'), Astro.site).href, sameAs: [club.facebook],
+    address: { '@type': 'PostalAddress', streetAddress: 'Aéroport de Beauvais-Tillé, zone aéroplaisance', postalCode: '60000', addressLocality: 'Tillé', addressCountry: 'FR' },
+    geo: { '@type': 'GeoCoordinates', latitude: club.latitude, longitude: club.longitude },
+  })} />
+
+  <section class="hero" aria-label="Présentation">
+    <div class="h-img"><img {...photo(hero?.image, '100vw')} fetchpriority="high" alt={hero?.legende ?? ''} /></div>
+    <div class="h-metar"><div class="container"><Metar sombre /></div></div>
+    <div class="h-chiffre" aria-hidden="true"><strong>1979</strong><span>Aéroclub associatif</span></div>
+    <div class="h-panneau" data-reveal>
+      <div class="label">Baptêmes et école de pilotage</div>
+      <h1 data-split="now">{pg.titre}.</h1>
+      <p>{pg.texte.replace('{annees}', String(annees))}</p>
+      <div class="h-btns">
+        <a class="btn btn-primary" href={url('/contact?objet=Baptême')}>Réserver un baptême</a>
+        <a class="btn btn-nuit" href="#pilote">Devenir pilote</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="acces" aria-label="Accès rapides">
+    <div class="container a-grille" data-stagger>
+      {acces.map((a) => (
+        <a href={a.href.startsWith('#') ? a.href : url(a.href)}><b>{a.titre}</b><small>{a.texte}</small><i set:html={fleche} /></a>
+      ))}
+    </div>
+  </section>
+
+  <section class="section" id="bapteme">
+    <div class="container">
+      <div class="tete">
+        <div><div class="label">Baptême de l'air</div><h2 data-split>{pg.bapteme.titre}.</h2></div>
+        <p class="lead" data-reveal>{pg.bapteme.texte}</p>
+      </div>
+      <div class="formules" data-stagger>
+        {t.formules.map((x, i) => (
+          <article class:list={['formule', { vedette: i === vedette }]}>
+            {i === vedette && <span class="tag etiquette">Le plus demandé</span>}
+            <div class="f-photo"><img {...photo(photosFormules[i] ?? pg.bapteme.image, '(min-width: 900px) 30vw, 100vw')} alt="" loading="lazy" /></div>
+            <div class="f-corps"><h3>{x.titre}</h3><p>{x.texte}</p></div>
+            <div class="f-pied">
+              <div class="prix"><small>{x.prix.length > 1 ? 'à partir de' : x.prix[0].libelle}</small>{nf(Math.min(...x.prix.map((p) => p.prix)))} €</div>
+              <a class="f-lien" href={url(`/contact?objet=${encodeURIComponent(x.titre)}`)}>Réserver</a>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div class="cadeau" data-reveal>
+        <div><b>Un vol à offrir ?</b><span>Bon cadeau valable pour toutes les formules.</span></div>
+        <a class="btn btn-nuit" href={url('/contact?objet=Bon cadeau')}>Offrir un bon cadeau</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section soft" id="pilote">
+    <div class="container">
+      <div class="tete">
+        <div><div class="label">Formation de pilote</div><h2 data-split>{pg.formation.titre}</h2></div>
+        <p class="lead" data-reveal>{pg.formation.texte}</p>
+      </div>
+      <ol class="parcours" data-stagger>
+        {f.parcours.map((e) => <li>{e.titre}</li>)}
+      </ol>
+      <div class="p-duo">
+        <div class="p-photo"><img {...photo(pg.formation.image, '(min-width: 900px) 40vw, 100vw')} alt="" loading="lazy" /></div>
+        <div class="mini" data-mini={JSON.stringify(mini)}>
+          <div class="label">Simulateur</div>
+          <h3>{s.titre}</h3>
+          <div class="q"><span>Votre âge</span><div class="seg"><button type="button" data-q="age" data-v="jeune" class="on">Moins de 21 ans</button><button type="button" data-q="age" data-v="adulte">21 ans et plus</button></div></div>
+          <div class="q"><span>La licence visée</span><div class="seg">{s.licences.map((l, i) => <button type="button" data-q="licence" data-v={l.code} class:list={{ on: i === s.licences.length - 1 }}>{l.nom}</button>)}</div></div>
+          <div class="q"><span>Votre rythme</span><div class="seg">{s.rythmes.map((r, i) => <button type="button" data-q="rythme" data-v={r.libelle} class:list={{ on: i === 1 }}>{r.libelle}</button>)}</div></div>
+          <div class="resultat">
+            <div><small>Budget estimé</small><strong class="m-total">—</strong><p class="m-detail"></p></div>
+            <a class="btn btn-primary" href={url('/formations#simulateur')}>Le détail</a>
+          </div>
+          {aidesMax && <p class="m-note">Moins de 21 ans : avec Objectif Pilote, la Fédération verse <b>jusqu'à {aidesMax} €</b> d'aides au fil des étapes.</p>}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="container">
+      <div class="label">Le club</div>
+      <h2 data-split class="c-titre">{pg.atouts_titre}.</h2>
+      <div class="chiffres" data-stagger>
+        {pg.atouts.map((a) => {
+          const v = a.chiffre.replace('{avions}', String(avions.length));
+          const m = v.match(/^(\d+)\s*(%?)$/);
+          return (
+            <div>
+              <strong {...(m ? { 'data-count': m[1], 'data-suffix': m[2] ? ' %' : undefined, 'data-from': +m[1] > 1000 ? String(+m[1] - 80) : undefined } : {})}>{v}</strong>
+              <span>{a.texte}{a.lien && <> <a href={url(a.lien)}>{a.lien_texte || 'En savoir plus'}</a></>}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="flotte">
+    <div class="container">
+      <div class="tete">
+        <div><div class="label">La flotte</div><h2 data-split>Nos avions.</h2></div>
+        <a class="btn btn-outline" href={url('/club/flotte')}>Toute la flotte et les tarifs</a>
+      </div>
+      <div class="avions" data-stagger>
+        {avions.map((a) => (
+          <a class="avion" href={url('/club/flotte')}>
+            <div class="av-photo"><img {...photo(a.data.photos[0], '(min-width: 900px) 25vw, 50vw')} alt="" loading="lazy" /></div>
+            <div class="av-txt"><strong>{a.data.immatriculation}</strong><span>{a.data.nom}</span>{a.data.usage && <em>{a.data.usage}</em>}</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const box = document.querySelector<HTMLElement>('.mini');
+  if (box) {
+    const d = JSON.parse(box.dataset.mini!);
+    const etat: Record<string, string> = {};
+    box.querySelectorAll<HTMLButtonElement>('.seg button.on').forEach((b) => (etat[b.dataset.q!] = b.dataset.v!));
+    const total = box.querySelector('.m-total')!, detail = box.querySelector('.m-detail')!;
+    const calc = () => {
+      const [hd, hs] = d.licences[etat.licence];
+      const j = etat.age === 'jeune';
+      const n = hd * d.double + hs * d.solo + (j ? d.adh.jeune : d.adh.adulte) + d.fournitures - (j ? d.aides : 0);
+      total.textContent = `${(Math.round(n / 50) * 50).toLocaleString('fr-FR')} €`;
+      const mois = Math.ceil((hd + hs) / d.rythmes[etat.rythme]);
+      detail.textContent = `environ ${mois} mois · ${hd + hs} h de vol${j ? ` · ${d.aides.toLocaleString('fr-FR')} € d'aides déduites` : ''}`;
+    };
+    box.querySelectorAll<HTMLButtonElement>('.seg button').forEach((b) => b.addEventListener('click', () => {
+      box.querySelectorAll<HTMLButtonElement>(`[data-q="${b.dataset.q}"]`).forEach((x) => x.classList.toggle('on', x === b));
+      etat[b.dataset.q!] = b.dataset.v!;
+      calc();
+    }));
+    calc();
+  }
+</script>
+
+<style>
+  /* Ouverture : photo, panneau blanc qui chevauche */
+  .hero { position: relative; background: var(--nuit); }
+  .h-img { height: clamp(440px, 56vw, 720px); overflow: hidden; }
+  .h-img img { width: 100%; height: 100%; object-fit: cover; object-position: 40% 60%; }
+  .h-metar { position: absolute; top: 0; left: 0; right: 0; padding: 8px 0; background: rgba(10,26,58,.6); backdrop-filter: blur(8px); }
+  .h-chiffre { position: absolute; right: clamp(16px, 4vw, 64px); bottom: 28px; color: #fff; text-align: right; font-family: var(--font-title); font-stretch: 80%; text-shadow: 0 2px 20px rgba(10,26,58,.35); }
+  .h-chiffre strong { display: block; font-size: clamp(56px, 7vw, 110px); font-weight: 800; line-height: .9; }
+  .h-chiffre span { font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; }
+  .h-panneau { position: absolute; left: max(clamp(16px, 4vw, 64px), (100% - var(--max)) / 2 + clamp(16px, 4vw, 64px)); bottom: clamp(-60px, -4vw, -30px); width: min(640px, 100% - 2 * clamp(16px, 4vw, 64px)); background: var(--white); padding: clamp(28px, 3.4vw, 48px); box-shadow: 0 30px 60px -30px rgba(10,26,58,.35); }
+  .h-panneau h1 { font-size: clamp(2.6rem, 5.2vw, 4.8rem); margin: 6px 0 18px; }
+  .h-panneau p { color: var(--muted); font-size: 1.08rem; max-width: 46ch; margin-bottom: 26px; }
+  .h-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Accès rapides */
+  .acces { padding: clamp(110px, 9vw, 140px) 0 clamp(20px, 3vw, 40px); }
+  .a-grille { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .a-grille a { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: center; padding: 26px 26px 26px 0; text-decoration: none; transition: background-color .2s; }
+  .a-grille a + a { padding-left: 26px; border-left: 1px solid var(--line); }
+  .a-grille a:hover { background: var(--paper-2); }
+  .a-grille b { font-family: var(--font-title); font-stretch: 85%; font-weight: 700; font-size: 1.45rem; color: var(--ink); line-height: 1.1; }
+  .a-grille small { grid-column: 1; color: var(--muted); font-size: .9rem; }
+  .a-grille i { grid-row: 1 / 3; grid-column: 2; width: 44px; height: 44px; display: grid; place-items: center; background: var(--sun); color: var(--ink); transition: transform .2s; }
+  .a-grille a:hover i { transform: translateX(3px); }
+  .a-grille i :global(svg) { width: 18px; height: 18px; }
+
+  .tete { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 60px; align-items: end; margin-bottom: 40px; }
+  .tete h2 { margin: 0; }
+  .tete .lead { margin: 0; }
+  .tete .btn { justify-self: end; }
+
+  /* Formules */
+  .formules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .formule { position: relative; display: grid; grid-template-rows: auto 1fr auto; background: var(--paper-2); }
+  .etiquette { position: absolute; top: 14px; left: 14px; z-index: 1; }
+  .f-photo { aspect-ratio: 16 / 10; overflow: hidden; }
+  .f-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
+  .formule:hover .f-photo img { transform: scale(1.04); }
+  .f-corps { padding: 24px 24px 8px; }
+  .f-corps h3 { margin: 0 0 8px; font-size: 1.75rem; }
+  .f-corps p { color: var(--muted); font-size: .95rem; margin: 0; }
+  .f-pied { display: flex; justify-content: space-between; align-items: flex-end; padding: 16px 24px 24px; }
+  .prix { font-family: var(--font-title); font-stretch: 80%; font-weight: 800; font-size: 2.9rem; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .prix small { display: block; font-family: var(--font-body); font-size: .8rem; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+  .f-lien { font-weight: 600; font-size: .9rem; color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--sun); padding-bottom: 2px; }
+  .vedette { background: var(--nuit); }
+  .vedette h3, .vedette .prix, .vedette .f-lien { color: #fff; }
+  .vedette p, .vedette .prix small { color: #a7b3ca; }
+  .cadeau { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; box-shadow: inset 0 0 0 1.5px var(--ink); padding: 20px 24px; }
+  .cadeau b { display: block; font-family: var(--font-title); font-stretch: 85%; font-weight: 700; font-size: 1.4rem; color: var(--ink); }
+  .cadeau span { color: var(--muted); font-size: .95rem; }
+
+  /* Formation */
+  .parcours { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); counter-reset: e; margin: 0 0 44px; padding: 0; }
+  .parcours li { counter-increment: e; padding: 18px 18px 0 0; border-top: 3px solid var(--line); font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .parcours li:first-child { border-top-color: var(--sun); }
+  .parcours li::before { content: counter(e, decimal-leading-zero); display: block; font-family: var(--font-title); font-stretch: 80%; font-weight: 800; font-size: 2.2rem; color: var(--ink); opacity: .18; margin-bottom: 6px; }
+  .parcours li:first-child::before { opacity: 1; }
+  .p-duo { display: grid; grid-template-columns: 5fr 7fr; gap: 16px; }
+  .p-photo { min-height: 480px; overflow: hidden; }
+  .p-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 64% 50%; }
+  .mini { background: var(--white); padding: clamp(24px, 3vw, 44px); display: grid; gap: 22px; align-content: start; }
+  .mini :global(.label) { margin: 0; }
+  .mini h3 { margin: 0; font-size: clamp(1.7rem, 2.6vw, 2.3rem); }
+  .q { display: grid; gap: 10px; }
+  .q > span { font-weight: 600; font-size: .9rem; color: var(--ink); }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 1.5px; background: var(--ink); border: 1.5px solid var(--ink); }
+  .seg button { min-height: 48px; border: 0; background: var(--white); color: var(--ink); font: inherit; font-weight: 500; font-size: .95rem; padding: 0 10px; cursor: pointer; }
+  .seg button:hover { background: var(--paper-2); }
+  .seg button.on { background: var(--ink); color: #fff; }
+  .seg button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; position: relative; }
+  .resultat { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: end; background: var(--nuit); color: #c9d2e3; padding: 22px 24px; }
+  .resultat small { display: block; font-size: .82rem; color: #a7b3ca; }
+  .m-total { display: block; font-family: var(--font-title); font-stretch: 80%; font-weight: 800; font-size: clamp(2.8rem, 4.4vw, 3.8rem); color: var(--sun); line-height: 1; margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
+  .m-detail { margin: 0; font-size: .84rem; }
+  .m-note { margin: 0; font-size: .88rem; color: var(--muted); }
+  .m-note b { color: var(--ink); }
+
+  /* Le club en chiffres */
+  .c-titre { max-width: 16ch; margin-bottom: 40px; }
+  .chiffres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .chiffres > div { border-top: 3px solid var(--sun); padding-top: 18px; }
+  .chiffres strong { display: block; font-family: var(--font-title); font-stretch: 80%; font-weight: 800; font-size: clamp(3.2rem, 6vw, 5.4rem); color: #fff; line-height: 1; font-variant-numeric: tabular-nums; }
+  .chiffres span { display: block; margin-top: 8px; max-width: 32ch; font-size: .95rem; }
+
+  /* Flotte */
+  .avions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .avion { display: grid; background: var(--paper-2); text-decoration: none; color: inherit; }
+  .av-photo { aspect-ratio: 4 / 3; overflow: hidden; }
+  .av-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
+  .avion:hover .av-photo img { transform: scale(1.05); }
+  .av-txt { display: grid; gap: 2px; padding: 16px 18px 18px; }
+  .av-txt strong { font-family: var(--font-title); font-stretch: 80%; font-weight: 800; font-size: 1.6rem; color: var(--ink); }
+  .av-txt span { font-size: .9rem; color: var(--muted); }
+  .av-txt em { font-style: normal; font-size: .82rem; font-weight: 600; color: var(--ink); margin-top: 6px; }
+
+  @media (max-width: 980px) {
+    .h-img { height: min(70vw, 460px); }
+    .h-panneau { position: relative; left: auto; bottom: auto; width: auto; margin: -64px 12px 0; padding: 26px 22px; }
+    .h-btns { grid-template-columns: 1fr; }
+    .h-chiffre { top: 52px; bottom: auto; }
+    .h-chiffre strong { font-size: 52px; }
+    .acces { padding-top: 32px; }
+    .a-grille { grid-template-columns: 1fr; }
+    .a-grille a, .a-grille a + a { padding: 18px 0; border-left: 0; }
+    .a-grille a + a { border-top: 1px solid var(--line); }
+    .tete { grid-template-columns: 1fr; margin-bottom: 28px; }
+    .tete .btn { justify-self: start; }
+    .formules, .p-duo, .chiffres { grid-template-columns: 1fr; }
+    .parcours { grid-template-columns: 1fr; }
+    .parcours li { display: grid; grid-template-columns: 52px 1fr; align-items: center; padding: 12px 0; border-top-width: 1px; }
+    .parcours li:first-child { border-top-width: 3px; }
+    .parcours li::before { font-size: 1.7rem; margin: 0; }
+    .p-photo { min-height: 0; aspect-ratio: 4 / 3; }
+    .seg { grid-auto-flow: row; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+    .resultat { grid-template-columns: 1fr; }
+    .resultat .btn { justify-self: stretch; }
+    .avions { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .av-txt strong { font-size: 1.3rem; }
+  }
+</style>
