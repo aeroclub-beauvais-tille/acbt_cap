@@ -3,14 +3,18 @@
 // (les publications automatiques de GitHub sont souvent retardées de plusieurs heures).
 // Pastille verte clignotante : METAR de moins de 2 h. Pastille rouge : plus de 2 h ou indisponible.
 import { metar, AVWX_CLE } from '../lib/metar';
-interface Props { sombre?: boolean }
-const { sombre = false } = Astro.props;
+interface Props { sombre?: boolean; bandeau?: boolean }
+const { sombre = false, bandeau = false } = Astro.props;
 const m = await metar();
 ---
-<div class:list={['metar', { sombre }]} data-heure={m?.heure ?? ''} data-cle={AVWX_CLE}>
+<div class:list={['metar', { sombre, bandeau }]} data-heure={m?.heure ?? ''} data-cle={AVWX_CLE}>
   <span class:list={['etat', m ? 'attente' : 'rouge']}><i></i><b>{m ? 'En direct' : 'Indisponible'}</b></span>
   <span class="station">METAR LFOB</span>
-  <code class="raw" title="Dernier METAR publié pour Beauvais-Tillé" hidden={!m}>{m?.raw}</code>
+  {bandeau ? (
+    <div class="defil" hidden={!m}><div class="piste"><code class="raw" title="Dernier METAR publié pour Beauvais-Tillé">{m?.raw}</code><span class="copie" aria-hidden="true"></span></div></div>
+  ) : (
+    <code class="raw" title="Dernier METAR publié pour Beauvais-Tillé" hidden={!m}>{m?.raw}</code>
+  )}
   <span class="raw vide" hidden={!!m}>Pas de METAR reçu. Consultez <a href="https://aviation.meteo.fr/login.php" target="_blank" rel="noopener">AEROWEB</a>.</span>
 </div>
 <script>
@@ -49,10 +53,25 @@ const m = await metar();
       el.dataset.heure = m.heure;
       const code = el.querySelector<HTMLElement>('code.raw')!;
       code.textContent = m.raw; code.hidden = false;
+      const defil = el.querySelector<HTMLElement>('.defil');
+      if (defil) defil.hidden = false;
       el.querySelector<HTMLElement>('.raw.vide')!.hidden = true;
     });
     maj();
+    ajuster();
   };
+  // Bandeau : le METAR défile seulement s'il ne tient pas en entier sur la largeur.
+  const ajuster = () => document.querySelectorAll<HTMLElement>('.metar .defil').forEach((d) => {
+    const code = d.querySelector<HTMLElement>('code.raw')!, copie = d.querySelector<HTMLElement>('.copie')!;
+    d.classList.remove('anime'); copie.textContent = '';
+    if (code.scrollWidth > d.clientWidth + 1) {
+      copie.textContent = code.textContent;
+      d.style.setProperty('--duree', `${Math.max(12, code.textContent!.length / 4)}s`);
+      d.classList.add('anime');
+    }
+  });
+  addEventListener('resize', ajuster);
+  ajuster();
   maj();
   rafraichir();
   setInterval(maj, 60000);
@@ -74,4 +93,18 @@ const m = await metar();
   .sombre .station, .sombre .raw { color: #fff; }
   .sombre .vert { color: #5fd3a6; } .sombre .rouge { color: #ff8a93; }
   .sombre a { color: #fff; }
+  /* Variante bandeau : une seule ligne, défilement si le texte dépasse */
+  .bandeau { flex-wrap: nowrap; gap: 12px; min-width: 0; flex: 1; font-size: .8rem; }
+  .bandeau .etat, .bandeau .station { flex: none; white-space: nowrap; }
+  .bandeau .station { font-size: .7rem; }
+  .defil { flex: 1; min-width: 0; overflow: hidden; }
+  .piste { display: flex; width: max-content; }
+  .bandeau .raw { white-space: nowrap; overflow-wrap: normal; font-size: .8rem; }
+  .copie { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; color: #fff; white-space: nowrap; }
+  .defil.anime { -webkit-mask: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent); mask: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent); }
+  .defil.anime .raw, .defil.anime .copie { padding-right: 3em; }
+  .defil.anime .piste { animation: metar-defil var(--duree, 18s) linear infinite; }
+  @keyframes metar-defil { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .defil.anime .piste { animation: none; } .defil.anime { overflow-x: auto; } }
+  @media (max-width: 440px) { .bandeau .station { display: none; } }
 </style>
