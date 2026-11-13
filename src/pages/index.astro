@@ -55,9 +55,8 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
   <section class="hero" aria-label="Présentation">
     <div class="h-img"><img {...photo(hero?.image, '100vw')} fetchpriority="high" alt={hero?.legende ?? ''} /></div>
     <div class="h-metar"><div class="container"><Metar sombre /></div></div>
-    <div class="h-chiffre" aria-hidden="true"><strong>1979</strong><span>Aéroclub associatif</span></div>
     <div class="h-panneau" data-reveal>
-      <div class="label">Baptêmes et école de pilotage</div>
+      <div class="label">Aéroclub associatif depuis 1979</div>
       <h1 data-split="now">{pg.titre}.</h1>
       <p>{pg.texte.replace('{annees}', String(annees))}</p>
       <div class="h-btns">
