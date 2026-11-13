@@ -175,9 +175,10 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
       const [hd, hs] = d.licences[etat.licence];
       const j = etat.age === 'jeune';
       const n = hd * d.double + hs * d.solo + (j ? d.adh.jeune : d.adh.adulte) + d.fournitures - (j ? d.aides : 0);
-      total.textContent = `${(Math.round(n / 50) * 50).toLocaleString('fr-FR')} €`;
-      const mois = Math.ceil((hd + hs) / d.rythmes[etat.rythme]);
-      detail.textContent = `environ ${mois} mois · ${hd + hs} h de vol${j ? ` · ${d.aides.toLocaleString('fr-FR')} € d'aides déduites` : ''}`;
+      // Montant mis en avant : la dépense par mois ; le total reste indiqué en dessous.
+      const mois = Math.max(1, Math.ceil((hd + hs) / d.rythmes[etat.rythme]));
+      total.innerHTML = `${(Math.round(n / mois / 5) * 5).toLocaleString('fr-FR')} €<small> / mois</small>`;
+      detail.textContent = `pendant ${mois} mois, soit ${(Math.round(n / 50) * 50).toLocaleString('fr-FR')} € au total · ${hd + hs} h de vol${j ? ` · ${d.aides.toLocaleString('fr-FR')} € d'aides déduites` : ''}`;
     };
     box.querySelectorAll<HTMLButtonElement>('.seg button').forEach((b) => b.addEventListener('click', () => {
       box.querySelectorAll<HTMLButtonElement>(`[data-q="${b.dataset.q}"]`).forEach((x) => x.classList.toggle('on', x === b));
@@ -261,6 +262,7 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
   .seg button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; position: relative; }
   .resultat { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: end; background: var(--nuit); color: #c9d2e3; padding: 22px 24px; }
   .resultat small { display: block; font-size: .82rem; color: #a7b3ca; }
+  .m-total :global(small) { font-size: .4em; letter-spacing: 0; font-weight: 500; color: inherit; opacity: .8; }
   .m-total { display: block; font-family: var(--font-title); font-stretch: 80%; font-weight: 800; font-size: clamp(2.8rem, 4.4vw, 3.8rem); color: var(--sun); line-height: 1; margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
   .m-detail { margin: 0; font-size: .84rem; }
   .m-note { margin: 0; font-size: .88rem; color: var(--muted); }
