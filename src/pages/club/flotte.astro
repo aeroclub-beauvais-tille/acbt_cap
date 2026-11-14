@@ -70,9 +70,8 @@ import pages from '../../data/pages.json';
   @media (max-width: 899px) { .a-grille { grid-template-columns: 1fr; } }
   /* Téléphone : un avion par écran, le défilement s'arrête sur chacun */
   @media (max-width: 599px) {
-    :global(html) { scroll-snap-type: y proximity; }
     .flotte { gap: 18px; padding-top: 20px; }
-    .avion { scroll-snap-align: start; scroll-margin-top: 112px; }
+    .avion { scroll-margin-top: 112px; }
     .immat { font-size: 19vw; padding: 14px 16px 0; }
     .a-grille { padding: 14px 16px 18px; gap: 14px; }
     .a-infos h2 { font-size: 1.6rem; margin-bottom: 12px; }
