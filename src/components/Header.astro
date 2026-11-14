@@ -25,9 +25,7 @@ const membre = path.startsWith(url('/membre'));
     <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Ouvrir le menu" />
     <nav aria-label="Navigation principale">
       <ul>
-        {nav.map((n) => <>
-          <li><a href={url(n.href)} aria-current={actif(n.href) ? 'page' : undefined}>{n.label}</a></li>>{s.label}</a></li>)}
-        </>)}
+        {nav.map((n) => <li><a href={url(n.href)} aria-current={actif(n.href) ? 'page' : undefined}>{n.label}</a></li>)}
         <li class="li-membre"><a class="member" href={url('/membre')}>Espace membre</a></li>
       </ul>
     </nav>
