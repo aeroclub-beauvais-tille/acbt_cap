@@ -160,6 +160,7 @@ content:
             fields:
               - { name: image, label: Photo, type: image }
               - { name: legende, label: Légende, type: string }
+          - { name: video, label: Vidéo de fond (facultatif), type: file, description: "Fichier MP4 court (10 à 30 secondes), sans son, de préférence moins de 15 Mo. Elle passe en boucle par-dessus les photos. Laissez vide pour garder les photos qui défilent." }
           - name: cartes
             label: "Les 3 choix sous la photo d'accueil (dans l'ordre : baptême, devenir pilote, déjà pilote). Le prix « dès … € » du baptême est ajouté automatiquement"
             type: object

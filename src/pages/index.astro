@@ -1,5 +1,5 @@
 ---
-import { photo } from '../lib/photo';
+import { photo, photoUrl } from '../lib/photo';
 import Base from '../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import club from '../data/club.json';
@@ -34,7 +34,12 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
   })} />
 
   <section class="hero" aria-label="Présentation">
-    <div class="h-img"><img {...photo(hero?.image, '100vw')} fetchpriority="high" alt={hero?.legende ?? ''} /></div>
+    <div class="h-img"><img {...photo(hero?.image, '100vw')} fetchpriority="high" alt={hero?.legende ?? ''} />
+      {pg.video && (
+        <video class="h-video" autoplay muted loop playsinline preload="metadata" poster={photoUrl(hero?.image)} aria-hidden="true">
+          <source src={asset(pg.video)} type="video/mp4" />
+        </video>
+      )}</div>
     <div class="h-panneau" data-reveal>
       <div class="label">Aéroclub associatif depuis 1979</div>
       <h1 data-split="now">{pg.titre}.</h1>
@@ -110,9 +115,18 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
 </Base>
 
 
+
+<script>
+  // Vidéo de fond : coupée si le visiteur a demandé moins d'animations
+  const v = document.querySelector<HTMLVideoElement>('.h-video');
+  if (v && matchMedia('(prefers-reduced-motion: reduce)').matches) { v.removeAttribute('autoplay'); v.pause(); }
+</script>
+
 <style>
   /* Ouverture : photo, panneau blanc qui chevauche */
   .hero { position: relative; background: var(--nuit); }
+  .h-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+  .h-img { position: relative; }
   .h-img { height: clamp(440px, 56vw, 720px); overflow: hidden; }
   .h-img img { width: 100%; height: 100%; object-fit: cover; object-position: 40% 60%; }
   .h-chiffre { position: absolute; right: clamp(16px, 4vw, 64px); bottom: 28px; color: #fff; text-align: right; font-family: var(--font-title); font-stretch: 80%; text-shadow: 0 2px 20px rgba(10,26,58,.35); }
