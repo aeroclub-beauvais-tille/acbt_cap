@@ -14,12 +14,12 @@ const ld = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: q
 </div>
 <script type="application/ld+json" set:html={JSON.stringify(ld)} />
 <style>
-  /* Questions en lignes nettes : trait épais en tête, carré jaune qui se change en croix */
+  /* Questions en lignes nettes : trait épais en tête, carré bleu qui se change en croix */
   .faq { max-width: 900px; margin-top: clamp(24px, 3vw, 40px); border-top: 3px solid var(--ink); }
   details { border-bottom: 1px solid var(--line); }
   summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 18px 0; font-family: var(--font-title); font-stretch: 88%; font-weight: 700; font-size: clamp(1.05rem, 1.8vw, 1.25rem); color: var(--ink); }
   summary::-webkit-details-marker { display: none; }
-  summary span { flex: none; display: grid; place-items: center; width: 32px; height: 32px; background: var(--sun); color: var(--ink); font-size: 1.3rem; font-weight: 700; transition: transform .25s, background-color .2s; }
+  summary span { flex: none; display: grid; place-items: center; width: 32px; height: 32px; background: var(--sun); color: #fff; font-size: 1.3rem; font-weight: 700; transition: transform .25s, background-color .2s; }
   details[open] summary span { transform: rotate(45deg); background: var(--ink); color: #fff; }
   p { margin: 0; padding: 0 52px 20px 0; color: var(--muted); max-width: 68ch; }
 </style>
