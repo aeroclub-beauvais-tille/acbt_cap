@@ -2,6 +2,7 @@
 import club from '../data/club.json';
 import { url } from '../lib/utils';
 import Metar from './Metar.astro';
+import Logo from './Logo.astro';
 const nav = [
   { label: 'Baptême', href: '/decouvrir-le-vol' },
   { label: 'Devenir pilote', href: '/formations' },
@@ -18,9 +19,8 @@ const membre = path.startsWith(url('/membre'));
 <header class="site-header">
   <div class="bandeau"><div class="container b-in"><Metar sombre bandeau /><a class="b-tel" href={`tel:${club.telephone.replace(/\s/g, '')}`}>{club.telephone}</a></div></div>
   <div class="container bar">
-    <a class="logo" href={url('/')}>
-      <img src={url('/uploads/logo/logo-acbt.png')} alt="" width="50" height="36" />
-      <span><strong>ACBT</strong><small>Aéroclub de Beauvais-Tillé</small></span>
+    <a class="logo" href={url('/')} aria-label="ACBT — Aéroclub de Beauvais-Tillé, accueil">
+      <Logo class="logo-mark" />
     </a>
     <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Ouvrir le menu" />
     <nav aria-label="Navigation principale">
@@ -44,11 +44,7 @@ const membre = path.startsWith(url('/membre'));
   .b-in { display: flex; justify-content: space-between; align-items: center; height: 32px; gap: 16px; }
   .bandeau a { color: #fff; font-weight: 600; text-decoration: none; }
   .bar { display: flex; align-items: center; gap: 8px; height: 72px; }
-  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; margin-right: auto; }
-  .logo img { height: 36px; width: auto; }
-  .logo span { display: flex; flex-direction: column; line-height: 1; }
-  .logo strong { font-family: var(--font-title); font-stretch: 85%; font-weight: 800; font-size: 1.4rem; color: var(--ink); }
-  .logo small { font-size: .74rem; font-weight: 500; color: var(--muted); margin-top: 3px; }
+  .logo { display: flex; align-items: center; text-decoration: none; margin-right: auto; color: var(--ink); --logo-h: 40px; --logo-rouge: #EC091D; }
   nav { align-self: stretch; }
   nav ul { display: flex; height: 100%; list-style: none; margin: 0; padding: 0; }
   nav li { display: flex; }
@@ -59,7 +55,7 @@ const membre = path.startsWith(url('/membre'));
   nav a.member:hover { background: var(--ink); color: #fff; }
   .nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
   .reserver { margin-left: 8px; display: inline-flex; align-items: center; height: 44px; padding: 0 18px; background: var(--sun); color: #fff; font-family: var(--font-title); font-stretch: 90%; font-weight: 700; font-size: .95rem; text-decoration: none; white-space: nowrap; transition: background-color .2s; }
-  .reserver:hover { background: #ffcb33; color: var(--ink); }
+  .reserver:hover { background: var(--ink); color: #fff; }
   .reserver:focus-visible, nav a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
   .actions { display: flex; align-items: center; margin-left: 8px; }
   .burger { display: none; width: 44px; height: 44px; background: var(--paper-2); align-items: center; justify-content: center; cursor: pointer; position: relative; z-index: 2; }
@@ -67,7 +63,7 @@ const membre = path.startsWith(url('/membre'));
   .burger span { position: relative; }
   .burger span::before, .burger span::after { content: ''; position: absolute; left: 0; }
   .burger span::before { top: -6px; } .burger span::after { top: 6px; }
-  @media (max-width: 1180px) { .reserver span { display: none; } nav a { padding: 0 11px; } .logo small { display: none; } }
+  @media (max-width: 1180px) { .reserver span { display: none; } nav a { padding: 0 11px; } }
   @media (max-width: 980px) {
     .burger { display: inline-flex; margin-left: 6px; }
     .b-tel { display: none; }
@@ -85,7 +81,7 @@ const membre = path.startsWith(url('/membre'));
     .nav-toggle:checked ~ .burger span::after { transform: translateY(-6px) rotate(-45deg); background: #fff; }
     .nav-toggle:focus-visible ~ .burger { outline: 3px solid var(--sun); outline-offset: 2px; }
   }
-  @media (max-width: 440px) { .logo small { display: none; } .bar { height: 64px; } }
+  @media (max-width: 440px) { .logo { --logo-h: 36px; } .bar { height: 64px; } }
   @keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
   @media (prefers-reduced-motion: reduce) { .nav-toggle:checked ~ nav { animation: none; } }
 </style>
