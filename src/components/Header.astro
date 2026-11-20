@@ -13,7 +13,8 @@ const nav = [
 ];
 const path = Astro.url.pathname.replace(/\/$/, '');
 const actif = (href: string) =>
-  href === '/club' ? [url('/club'), url('/club/historique'), url('/actualites')].some((p) => path === p || path.startsWith(p + '/')) : path.startsWith(url(href));
+  // « Le club » : sa page, l'historique et les actualités, mais pas la flotte ni les tarifs (rangés sous /club/ mais qui ont leur propre onglet).
+  href === '/club' ? path === url('/club') || [url('/club/historique'), url('/actualites')].some((p) => path === p || path.startsWith(p + '/')) : path.startsWith(url(href));
 const membre = path.startsWith(url('/membre'));
 ---
 <header class="site-header">
