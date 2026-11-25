@@ -1,0 +1,58 @@
+---
+// Histoire A « Frise alternée » : une ligne au centre, les événements à gauche et à droite, regroupés par décennie.
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import pages from '../../data/pages.json';
+import { photo } from '../../lib/photo';
+import { asset } from '../../lib/utils';
+import { intro, decennies } from '../../lib/histoire';
+let k = 0;
+---
+<Base univers="club" title="Notre histoire (proposition A)">
+  <PageHead eyebrow="Le club" image={pages.historique.image} title={pages.historique.titre} lead={intro} />
+  <section class="section">
+    <div class="container">
+      {decennies.map((d) => (
+        <div class="dec">
+          <h2 class="dec-titre"><span>{d.nom}</span></h2>
+          <ol class="frise">
+            {d.etapes.map((e) => { const cote = k++ % 2 ? 'droite' : 'gauche'; return (
+              <li class={cote}>
+                <div class="carte">
+                  <span class="an">{e.annee}</span>
+                  <h3>{e.titre}</h3>
+                  <p>{e.texte}</p>
+                  {e.photos.length > 0 && <div class="photos">{e.photos.slice(0, 3).map((p) => <a href={asset(p)} target="_blank"><img {...photo(p, '200px')} alt={`${e.titre}, ${e.annee}`} loading="lazy" /></a>)}{e.photos.length > 3 && <span class="plus">+{e.photos.length - 3}</span>}</div>}
+                </div>
+              </li>
+            ); })}
+          </ol>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>
+<style>
+  .dec + .dec { margin-top: 24px; }
+  .dec-titre { text-align: center; margin: 0 0 28px; }
+  .dec-titre span { display: inline-block; background: var(--marine); color: #fff; font-size: 1.15rem; padding: 10px 24px; border-radius: 999px; }
+  .frise { list-style: none; margin: 0; padding: 0; position: relative; }
+  .frise::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--line); transform: translateX(-1px); }
+  .frise li { position: relative; width: 50%; padding: 0 44px 28px 0; }
+  .frise li.droite { margin-left: 50%; padding: 0 0 28px 44px; }
+  .frise li::before { content: ''; position: absolute; top: 22px; right: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--rouge); box-shadow: 0 0 0 5px #fff; }
+  .frise li.droite::before { right: auto; left: -8px; }
+  .carte { border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; background: #fff; }
+  .an { display: inline-block; font-family: var(--font-title); font-weight: 700; font-size: 1.6rem; color: var(--rouge); line-height: 1; margin-bottom: 6px; }
+  .carte h3 { margin: 0 0 6px; font-size: 1.2rem; }
+  .carte p { margin: 0; color: var(--muted); font-size: .95rem; }
+  .photos { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
+  .photos img { width: 96px; height: 72px; object-fit: cover; border-radius: 10px; }
+  .plus { font-family: var(--font-title); font-weight: 700; color: var(--marine); padding-left: 4px; }
+  @media (max-width: 799px) {
+    .frise::before { left: 7px; }
+    .frise li, .frise li.droite { width: auto; margin: 0; padding: 0 0 20px 32px; }
+    .frise li::before, .frise li.droite::before { left: 0; right: auto; }
+    .dec-titre { text-align: left; }
+  }
+</style>
