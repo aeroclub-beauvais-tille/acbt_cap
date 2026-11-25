@@ -58,7 +58,7 @@ const sansReserver = membre || path === url('/decouvrir-le-vol').replace(/\/$/, 
   :global(body:has(.site-header.membre) main) { padding-top: 0; }
   .progression { position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--accent); transform: scaleX(0); transform-origin: left; pointer-events: none; }
   .bar { display: flex; align-items: center; gap: 10px; height: 84px; padding: 0 clamp(20px, 4vw, 56px); }
-  .logo { display: flex; align-items: center; text-decoration: none; color: var(--fg); margin-right: auto; --logo-h: 60px; --logo-rouge: #EC091D; }
+  .logo { display: flex; align-items: center; text-decoration: none; color: var(--fg); margin-right: auto; --logo-h: 60px; --logo-rouge: #FF2020; }
   nav ul { display: flex; align-items: center; gap: 2px; list-style: none; margin: 0; padding: 0; }
   nav a { position: relative; display: block; padding: 8px 14px; color: var(--fg); text-decoration: none; font-family: var(--font-title); font-size: 1.04rem; font-weight: 500; white-space: nowrap; opacity: 1; }
   nav a::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 0; height: 3px; border-radius: 2px; background: var(--sun) !important; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
@@ -67,8 +67,8 @@ const sansReserver = membre || path === url('/decouvrir-le-vol').replace(/\/$/, 
   nav a.member { opacity: .7; font-size: .88rem; }
   .nav-pied { display: none; }
   .nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
-  .reserver { margin-left: 12px; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 999px; background: var(--sun); color: var(--ink); font-family: var(--font-title); font-weight: 600; font-size: .98rem; text-decoration: none; white-space: nowrap; transition: background-color .25s, color .25s; }
-    .reserver:hover { background: #ffc933; color: var(--ink) !important; }
+  .reserver { margin-left: 12px; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 999px; background: var(--rouge); color: #fff; font-family: var(--font-title); font-weight: 600; font-size: .98rem; text-decoration: none; white-space: nowrap; transition: background-color .25s, color .25s; }
+    .reserver:hover { background: var(--marine); color: #fff !important; }
   .burger { display: none; align-items: center; height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--fg) 50%, transparent); font-family: var(--font-title); font-size: .92rem; cursor: pointer; position: relative; z-index: 2; }
   .b-fermer { display: none; }
   .nav-toggle:focus-visible ~ .burger, .reserver:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -82,21 +82,21 @@ const sansReserver = membre || path === url('/decouvrir-le-vol').replace(/\/$/, 
     nav ul { flex-direction: column; align-items: stretch; gap: 0; }
     nav li { border-bottom: 1px solid rgba(255,255,255,.12); }
     nav li.li-membre { border: 0; }
-    nav a { display: flex; align-items: baseline; gap: 16px; color: #eef3fb; font-weight: 500; font-size: clamp(1.7rem, 7.5vw, 2.4rem); letter-spacing: -.02em; padding: 9px 0; opacity: 1; }
+    nav a { display: flex; align-items: baseline; gap: 16px; color: #fff; font-weight: 500; font-size: clamp(1.7rem, 7.5vw, 2.4rem); letter-spacing: -.02em; padding: 9px 0; opacity: 1; }
     nav a::after { display: none; }
-    nav a[aria-current] { color: #86b4e6; }
+    nav a[aria-current] { color: var(--ciel); }
     nav a::after { left: 0; right: auto; width: 40px; bottom: 10px; }
-    nav a:hover { color: #eef3fb; }
+    nav a:hover { color: #fff; }
     .li-membre { margin-top: 18px; }
-    nav a.member { font-size: 1rem; letter-spacing: 0; color: #8ea3c0; }
-    .nav-pied { display: block; margin: 30px 0 0; color: #8ea3c0; font-size: .9rem; }
+    nav a.member { font-size: 1rem; letter-spacing: 0; color: rgba(255,255,255,.75); }
+    .nav-pied { display: block; margin: 30px 0 0; color: rgba(255,255,255,.75); font-size: .9rem; }
     .nav-toggle:checked ~ nav { display: flex; animation: menu-in .35s cubic-bezier(.2,.7,.2,1); }
-    .nav-toggle:checked ~ .burger { --fg: #eef3fb; color: #eef3fb; }
+    .nav-toggle:checked ~ .burger { --fg: #fff; color: #fff; }
     .nav-toggle:checked ~ .burger .b-ouvrir { display: none; }
     .nav-toggle:checked ~ .burger .b-fermer { display: inline; }
     .nav-toggle:checked ~ .reserver { visibility: hidden; }
     .site-header:has(.nav-toggle:checked) { background: transparent; border-color: transparent; backdrop-filter: none; }
-    .site-header:has(.nav-toggle:checked) .logo { color: #eef3fb; position: relative; z-index: 2; }
+    .site-header:has(.nav-toggle:checked) .logo { color: #fff; position: relative; z-index: 2; }
     .site-header:has(.nav-toggle:checked) .logo { --logo-rouge: currentColor; }
   }
   @media (max-width: 1020px) { .logo { --logo-h: 50px; } .bar { height: 74px; } }

@@ -1,16 +1,20 @@
 :root {
-  --ink: #0f1b2d;
-  --ink-2: #1c2b42;
+  --ink: #082B50;
+  --ink-2: #082B50;
   --paper: #ffffff;
-  --paper-2: #eaf2fc;
+  --paper-2: #ffffff;
   --white: #ffffff;
-  --text: #1f2633;
+  --text: #082B50;
   --muted: #5b626d;
   --line: #d9e2ee;
-  --sun: #f5b800;
-  --nuit: #0d1b33;
-  --marine: #002a5a;
-  --sky: #1e5fa8;
+  /* Couleurs du logo (charte ACBT) : bleu marine, bleu ciel, rouge passion, blanc, noir.
+     --sun garde son nom mais porte désormais le rouge passion. */
+  --sun: #FF2020;
+  --rouge: #FF2020;
+  --ciel: #00A8EF;
+  --nuit: #082B50;
+  --marine: #082B50;
+  --sky: #00A8EF;
   /* Couleur de l'univers courant, redéfinie par body[data-univers] */
   --accent: var(--sky);
   --radius: 18px;
@@ -20,12 +24,12 @@
 }
 /* Version foncée de la couleur de rubrique, lisible en petit texte et sous du texte blanc (contraste AA).
    Définie sur body pour suivre la couleur de la rubrique. */
-body { --accent-fonce: color-mix(in srgb, var(--accent) 78%, black); }
-body[data-univers='decouvrir'] { --accent: #1e5fa8; }
-body[data-univers='apprendre'] { --accent: #1e5fa8; }
-body[data-univers='voler'] { --accent: #1e5fa8; }
-body[data-univers='club'] { --accent: #1e5fa8; }
-body[data-univers='actus'] { --accent: #1e5fa8; }
+body { --accent-fonce: var(--marine); }
+body[data-univers='decouvrir'] { --accent: #00A8EF; }
+body[data-univers='apprendre'] { --accent: #00A8EF; }
+body[data-univers='voler'] { --accent: #00A8EF; }
+body[data-univers='club'] { --accent: #00A8EF; }
+body[data-univers='actus'] { --accent: #00A8EF; }
 body[data-univers='membres'] { --accent: #6b4fbb; }
 
 @view-transition { navigation: auto; }
@@ -49,15 +53,15 @@ p { margin: 0 0 1em; }
 /* Deux sections blanches qui se suivent : pas de double marge entre elles */
 .section:not(.dark) + .section:not(.dark) { padding-top: 0; }
 .section.white { background: var(--white); }
-.section.dark { background: var(--marine); color: #dbe4f0; }
+.section.dark { background: var(--marine); color: rgba(255,255,255,.85); }
 /* Sur le bleu foncé, seuls les titres et textes de la section passent en clair ; les cartes blanches gardent leurs couleurs */
-.section.dark :is(.container, .section-head, .section-head > div, .duo-txt, .contact-band > div) > :is(h2, h3, p, .lead, .meta, ol, ul) { color: #dbe4f0; }
+.section.dark :is(.container, .section-head, .section-head > div, .duo-txt, .contact-band > div) > :is(h2, h3, p, .lead, .meta, ol, ul) { color: rgba(255,255,255,.85); }
 .section.dark :is(.container, .section-head, .section-head > div, .duo-txt, .contact-band > div) > :is(h2, h3) { color: #fff; }
 .section.dark :is(.container, .section-head > div, .duo-txt, .contact-band > div) > :is(.label, .eyebrow) { color: rgba(255,255,255,.75); }
 /* Blocs posés dans la section (cartes, grilles) : texte normal, sauf ceux qui fixent leur propre couleur */
 .section.dark .container > :not(h2, h3, p, ul, ol, .section-head, .label, .eyebrow, .lead, .meta, .btns) { color: var(--text); }
 .section.dark .btn-primary { background: #fff; color: var(--marine); }
-.section.dark .btn-primary:hover { background: var(--sun); color: var(--marine); }
+.section.dark .btn-primary:hover { background: var(--ciel); color: #fff; }
 .section.dark .btn-outline { border-color: rgba(255,255,255,.6); color: #fff; }
 .section.dark .btn-outline:hover { background: #fff; color: var(--marine); }
 
@@ -82,31 +86,31 @@ a.card:hover, .card:has(a.stretched:hover) { transform: translateY(-4px); box-sh
 .card-body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
 .card-body > :last-child { margin-bottom: 0; }
 .card img.cover { aspect-ratio: 3 / 2; object-fit: cover; width: 100%; }
-.tag { display: inline-block; align-self: flex-start; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 14%, white); color: color-mix(in srgb, var(--accent) 75%, black); }
+.tag { display: inline-block; align-self: flex-start; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: var(--marine); color: #fff; }
 .meta { color: var(--muted); font-size: .88rem; }
 
 .btn { display: inline-flex; align-items: center; gap: .55em; padding: 13px 24px; border-radius: 999px; font-weight: 600; text-decoration: none; border: 1.5px solid transparent; transition: transform .15s, background .15s, color .15s; cursor: pointer; font-size: .98rem; font-family: inherit; }
 .btn:hover { transform: translateY(-1px); }
 .btn-primary { background: var(--accent-fonce); color: #fff; }
-.btn-primary:hover { color: #fff; background: color-mix(in srgb, var(--accent) 65%, black); }
+.btn-primary:hover { color: #fff; background: #000; }
 /* Bouton jaune : toutes les actions « Réserver » */
-.btn-jaune { background: var(--sun); color: var(--ink); }
-.btn-jaune:hover { background: #ffc933; color: var(--ink); }
+.btn-jaune { background: var(--rouge); color: #fff; }
+.btn-jaune:hover { background: var(--marine); color: #fff; }
 .btn-ghost { border-color: rgba(255,255,255,.7); color: #fff; }
 .btn-ghost:hover { background: #fff; color: var(--ink); }
 .btn-outline { border-color: var(--ink); color: var(--ink); }
 .btn-outline:hover { background: var(--ink); color: #fff; }
 .btns { display: flex; flex-wrap: wrap; gap: 12px; }
 
-.page-head { position: relative; min-height: 500px; display: flex; flex-direction: column; justify-content: flex-end; background: var(--ink); color: #d7dde6; padding: calc(84px + clamp(36px, 6vw, 72px)) 0 clamp(28px, 4vw, 48px); overflow: hidden; }
+.page-head { position: relative; min-height: 500px; display: flex; flex-direction: column; justify-content: flex-end; background: var(--ink); color: rgba(255,255,255,.85); padding: calc(84px + clamp(36px, 6vw, 72px)) 0 clamp(28px, 4vw, 48px); overflow: hidden; }
 /* Tous les bandeaux ont la hauteur de celui de la page Baptême (texte calé en bas) */
 @media (max-width: 700px) { .page-head { min-height: 411px; } }
 .page-head h1 { font-size: clamp(2.3rem, 5.2vw, 4.1rem); }
 .page-head .lead { font-size: 1.08rem; margin-bottom: 0; }
-.page-head.has-img { background: linear-gradient(90deg, rgba(0,26,58,.94) 0%, rgba(0,26,58,.7) 45%, rgba(0,26,58,.15) 100%), linear-gradient(0deg, rgba(0,26,58,.55) 0%, transparent 45%), var(--img) center / cover no-repeat, var(--ink); }
+.page-head.has-img { background: linear-gradient(90deg, rgba(8,43,80,.94) 0%, rgba(8,43,80,.7) 45%, rgba(8,43,80,.15) 100%), linear-gradient(0deg, rgba(8,43,80,.55) 0%, transparent 45%), var(--img) center / cover no-repeat, var(--ink); }
 .page-head::after { content: none; }
 .page-head h1 { color: #fff; max-width: 16ch; }
-.page-head .lead { color: #c9d1dc; }
+.page-head .lead { color: rgba(255,255,255,.85); }
 .page-head .eyebrow { margin-bottom: .7em; }
 .page-head .eyebrow { color: #fff; }
 .page-head .lead { max-width: 52ch; }
@@ -117,7 +121,7 @@ table.tarifs { width: 100%; border-collapse: collapse; background: var(--white);
 table.tarifs th, table.tarifs td { padding: 16px 18px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
 table.tarifs th { background: var(--ink); color: #fff; font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; }
 table.tarifs td.prix { font-weight: 700; color: var(--ink); white-space: nowrap; }
-.notice { background: #fff8e1; border: 1px solid #f3d777; color: #5c4400; border-radius: 12px; padding: 12px 16px; font-size: .92rem; }
+.notice { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--rouge); color: var(--marine); border-radius: 12px; padding: 12px 16px; font-size: .92rem; }
 .gallery { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 .gallery a { display: block; border-radius: 12px; overflow: hidden; }
 .gallery img { aspect-ratio: 4 / 3; object-fit: cover; width: 100%; transition: transform .4s; }

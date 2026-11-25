@@ -218,7 +218,7 @@ const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titr
   .slides { position: absolute; inset: 0; }
   .slides img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; opacity: 0; transform: scale(1.06); transition: opacity 1.4s ease, transform 7s ease-out; }
   .slides img.on { opacity: 1; transform: scale(1); }
-  .voile { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,26,58,.92) 0%, rgba(0,26,58,.62) 42%, rgba(0,26,58,.12) 75%), linear-gradient(0deg, rgba(0,26,58,.75) 0%, transparent 45%); }
+  .voile { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,43,80,.92) 0%, rgba(8,43,80,.62) 42%, rgba(8,43,80,.12) 75%), linear-gradient(0deg, rgba(8,43,80,.75) 0%, transparent 45%); }
   .vol { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; visibility: hidden; }
   .trace { fill: none; stroke: rgba(255,255,255,.7); stroke-width: 2; stroke-dasharray: 2 12; stroke-linecap: round; }
   .avion-svg path { fill: #fff; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
@@ -236,7 +236,7 @@ const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titr
   @media (max-width: 700px) {
     .hero.a-video { height: 100svh; min-height: 560px; padding-top: 0; flex-direction: column; justify-content: flex-end; }
     .hero.a-video .slides, .hero.a-video .voile { position: absolute; inset: 0; height: auto; max-height: none; }
-    .hero.a-video .voile { background: linear-gradient(180deg, rgba(10,18,31,.55) 0%, rgba(10,18,31,0) 28%, rgba(10,18,31,0) 50%, rgba(10,18,31,.85) 100%); }
+    .hero.a-video .voile { background: linear-gradient(180deg, rgba(8,43,80,.55) 0%, rgba(8,43,80,0) 28%, rgba(8,43,80,0) 50%, rgba(8,43,80,.85) 100%); }
     .hero.a-video .h-video-mobile { display: block; }
     .hero.a-video .hero-inner { padding: 0 0 60px; }
     /* Texte bas sur la vidéo : affiché tout de suite, sans attendre le défilement */
@@ -246,7 +246,7 @@ const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titr
   @media (max-width: 700px) {
     .hero:not(.a-video) { flex-direction: column; min-height: 0; padding-top: 0; }
     .hero:not(.a-video) .slides { position: relative; height: calc(min(46vw, 260px) + 120px); overflow: hidden; }
-    .hero:not(.a-video) .voile { inset: 0 0 auto 0; height: calc(min(46vw, 260px) + 120px); background: linear-gradient(180deg, rgba(10,18,31,.55) 0%, rgba(10,18,31,0) 40%, rgba(10,18,31,0) 60%, var(--ink) 100%); }
+    .hero:not(.a-video) .voile { inset: 0 0 auto 0; height: calc(min(46vw, 260px) + 120px); background: linear-gradient(180deg, rgba(8,43,80,.55) 0%, rgba(8,43,80,0) 40%, rgba(8,43,80,0) 60%, var(--ink) 100%); }
     .hero-inner { padding: 0 0 22px; }
     .hero .eyebrow { display: none; }
     .hero h1 { font-size: 1.65rem; margin-bottom: .3em; max-width: 18ch; }
@@ -268,13 +268,13 @@ const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titr
   .choix { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; margin-top: -72px; }
   .choix-carte { --c: var(--sun); position: relative; display: grid; grid-template-columns: 42% 1fr; min-height: 210px; border-radius: 20px; overflow: hidden; background: #fff; border: 1px solid var(--line); text-decoration: none; color: inherit; box-shadow: 0 18px 40px rgba(15,27,45,.12); transition: transform .25s, box-shadow .25s; }
   .choix-carte:hover { transform: translateY(-3px); box-shadow: 0 22px 50px rgba(15,27,45,.18); color: inherit; }
-  .c-apprendre { --c: #1e5fa8; } .c-voler { --c: #1e5fa8; }
+  .c-apprendre { --c: var(--marine); } .c-voler { --c: var(--ciel); }
   .choix-carte img { width: 100%; height: 100%; object-fit: cover; }
   .choix-texte { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 18px 20px; border-top: 4px solid var(--c); }
   .choix-texte h3 { font-size: clamp(1.2rem, 2.2vw, 1.55rem); margin: 0; }
   .choix-texte p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.4; }
-  .badge { font-size: .75rem; font-weight: 700; letter-spacing: .04em; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--c) 14%, white); color: color-mix(in srgb, var(--c) 62%, black); }
-  .action { margin-top: auto; padding-top: 8px; font-weight: 600; color: color-mix(in srgb, var(--c) 78%, black); font-size: .95rem; }
+  .badge { font-size: .75rem; font-weight: 700; letter-spacing: .04em; padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; }
+  .action { margin-top: auto; padding-top: 8px; font-weight: 600; color: var(--marine); font-size: .95rem; }
   .choix-carte.secondaire { grid-column: 1 / -1; grid-template-columns: 1fr; min-height: 0; box-shadow: none; background: transparent; }
   .secondaire img { display: none; }
   .secondaire .choix-texte { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 14px 20px; border-top: 0; border-left: 4px solid var(--c); }
@@ -308,7 +308,7 @@ const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titr
   .contact-band { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
   .cb-photo { margin: 0; position: relative; border-radius: 24px; overflow: hidden; aspect-ratio: 16 / 10; }
   .cb-photo img { width: 100%; height: 100%; object-fit: cover; }
-  .cb-photo figcaption { position: absolute; left: 14px; bottom: 14px; background: rgba(0,26,58,.78); color: #fff; font-size: .82rem; padding: 5px 12px; border-radius: 999px; }
+  .cb-photo figcaption { position: absolute; left: 14px; bottom: 14px; background: rgba(8,43,80,.78); color: #fff; font-size: .82rem; padding: 5px 12px; border-radius: 999px; }
   @media (max-width: 899px) { .contact-band { grid-template-columns: 1fr; } }
   /* Météo du terrain : fine bande posée en haut de la photo d'accueil */
   .hero-metar { position: absolute; top: 84px; left: 0; right: 0; z-index: 2; padding: 8px 0; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
@@ -334,7 +334,7 @@ const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titr
   .duo-img img { width: 100%; height: 100%; object-fit: cover; }
   .vedette .eyebrow { color: var(--accent-fonce); }
   .vedette .lead { margin: 0 0 20px; font-size: 1.08rem; }
-  .vedette.pilote { --accent: #1e5fa8; --accent-fonce: color-mix(in srgb, var(--accent) 78%, black); }
+  .vedette.pilote { --accent: #00A8EF; --accent-fonce: var(--marine); }
   .formules { list-style: none; margin: 0 0 22px; padding: 0; border-top: 1px solid var(--line); }
   .formules li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
   .formules span { display: flex; flex-direction: column; min-width: 0; }
@@ -348,7 +348,7 @@ const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titr
   .parcours li::before { content: ''; position: absolute; top: 22px; left: 54px; right: -4px; height: 2px; background: rgba(255,255,255,.3); }
   .parcours li:last-child::before { display: none; }
   .parcours span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; color: #fff; font-size: .95rem; }
-  .parcours li:first-child span { background: var(--sun); border-color: var(--sun); color: var(--marine); }
+  .parcours li:first-child span { background: var(--rouge); border-color: var(--rouge); color: #fff; }
   @media (max-width: 899px) {
     .duo { grid-template-columns: 1fr; }
     .duo.inverse .duo-img { order: 0; }
