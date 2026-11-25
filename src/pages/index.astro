@@ -1,363 +1,161 @@
 ---
-import { photo, photoUrl } from '../lib/photo';
+// Accueil (maquette A choisie par Hugo le 25/11) : bannière avec deux boutons, deux grandes portes, baptême photo + prix,
+// bande pilote, chiffres, venir au club. Bannière : vidéo plein écran sur téléphone (videos_mobile),
+// vidéo paysage sur ordinateur (video_ordinateur, à venir), sinon la photo d'accueil.
 import Base from '../layouts/Base.astro';
-import { getCollection } from 'astro:content';
-import club from '../data/club.json';
-import pages from '../data/pages.json';
-import t from '../data/tarifs.json';
-import f from '../data/formations.json';
+import { photo, photoUrl } from '../lib/photo';
 import { url, asset } from '../lib/utils';
-
-const avions = (await getCollection('avions', (a) => a.data.actif)).sort((a, b) => a.data.ordre - b.data.ordre);
-const annees = new Date().getFullYear() - 1979;
-const pg = pages.accueil;
+import club from '../data/club.json';
+import { pg, annees, heroImg, avions, parcours, clubHouse, chiffres } from '../lib/accueil';
+import { n, passager, commandes, des, svg, ico } from '../lib/bapteme';
+const flotte = await avions();
 const videosMobile: string[] = ((pg as any).videos_mobile || []).filter(Boolean);
-const slides = pg.diaporama.map((d) => ({ img: d.image, legende: d.legende }));
-// Les trois choix sous la photo : textes et photos modifiables dans le back-office (Pages du site > Accueil).
-const des = Math.min(...t.formules.flatMap((f) => f.prix.map((p) => p.prix)));
-const cibles = [
-  { id: 'decouvrir', href: '/decouvrir-le-vol', badge: `dès ${des.toLocaleString('fr-FR')} €`, action: 'Voir les prix' },
-  { id: 'apprendre', href: '/formations', badge: 'BIA · LAPL · PPL', action: 'Le parcours' },
-  { id: 'voler', href: '/club/flotte', badge: '', action: 'Voir les avions' },
-];
-// Pictos des chiffres du club (instructeurs, création, avions), au trait comme le reste du site
-const pictos = [
-  '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-  '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>',
-  '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
-];
-const clubHouse = '/uploads/historique/2012-locaux-01.jpg';
-const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titre, texte: c.texte, image: c.image }));
+const videoPc: string = (pg as any).video_ordinateur || '';
+const affiche = (v: string) => asset(v.replace(/\.mp4$/i, '.jpg'));
+const pict = ['<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>', svg.cal, svg.avion];
 ---
 <Base title="Accueil">
-  <script slot="head" type="application/ld+json" set:html={JSON.stringify({
-    '@context': 'https://schema.org', '@type': 'SportsClub', name: club.nom, alternateName: club.sigle,
-    url: new URL(url('/'), Astro.site).href, telephone: club.telephone, email: club.email, foundingDate: '1979',
-    image: new URL(asset('/partage.jpg'), Astro.site).href, sameAs: [club.facebook],
-    address: { '@type': 'PostalAddress', streetAddress: 'Aéroport de Beauvais-Tillé, zone aéroplaisance', postalCode: '60000', addressLocality: 'Tillé', addressCountry: 'FR' },
-    geo: { '@type': 'GeoCoordinates', latitude: club.latitude, longitude: club.longitude },
-  })} />
-  <section class:list={["hero", { "a-video": videosMobile.length > 0 }]} aria-label="Présentation">
-    <div class="slides">
-      {slides.map((s, i) => <img {...photo(s.img, '100vw')} fetchpriority={i ? undefined : 'high'} alt={s.legende} class:list={{ on: i === 0 }} loading={i ? 'lazy' : 'eager'} />)}
-      {videosMobile.map((v, i) => (
-        <video class:list={['h-video-mobile', { on: i === 0 }]} muted playsinline loop={videosMobile.length === 1} preload="none" poster={asset(v.replace(/\.mp4$/i, '.jpg'))} aria-hidden="true" data-src={asset(v)}></video>
-      ))}
+  <section class:list={['page-head has-img hero', { 'a-video': videosMobile.length > 0 }]} style={`--img: url('${photoUrl(heroImg)}')`}>
+    <div class="media" aria-hidden="true">
+      {videoPc && <video class="v-pc" muted playsinline loop preload="none" poster={affiche(videoPc)} data-src={asset(videoPc)}></video>}
+      {videosMobile.map((v, i) => <video class:list={['v-mob', { on: i === 0 }]} muted playsinline loop={videosMobile.length === 1} preload="none" poster={affiche(v)} data-src={asset(v)}></video>)}
     </div>
-    <div class="voile"></div>
-    <svg class="vol" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <mask id="trace-mask" maskUnits="userSpaceOnUse"><path id="trace-plein" d="M -60 560 C 220 560, 430 470, 580 330 S 840 70, 1100 30" fill="none" stroke="#fff" stroke-width="6" /></mask>
-      </defs>
-      <path class="trace" d="M -60 560 C 220 560, 430 470, 580 330 S 840 70, 1100 30" mask="url(#trace-mask)" />
-      <g class="avion-svg"><path transform="scale(1.4)" d="M16,0 C16,-1.6 13,-2.4 10,-2.4 L4,-2.4 L2,-19 L-3,-19 L-3,-2.4 L-14,-2 L-17,-8 L-20,-8 L-19,-1.6 L-19,1.6 L-20,8 L-17,8 L-14,2 L-3,2.4 L-3,19 L2,19 L4,2.4 L10,2.4 C13,2.4 16,1.6 16,0 Z" /></g>
-    </svg>
-    <div class="container hero-inner">
-      <div class="texte">
-        <span class="eyebrow" data-reveal data-delay="0.1">Aéroport de Beauvais-Tillé</span>
-        <h1 data-split="now">{pg.titre}</h1>
-        <p class="lead" data-reveal data-delay="0.8">{pg.texte.replace('{annees}', String(annees))}</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="choix-section" aria-label="Que voulez-vous faire ?">
     <div class="container">
-      <h2 class="question">Que voulez-vous faire ?</h2>
-      <div class="choix" data-stagger>
-        {choix.map((c, i) => (
-          <a class:list={['choix-carte', `c-${c.id}`, { secondaire: i === 2 }]} href={url(c.href)}>
-            <img {...photo(c.image, '(min-width: 900px) 20vw, 35vw')} alt="" loading={i < 2 ? 'eager' : 'lazy'} />
-            <div class="choix-texte">
-              {c.badge && <span class="badge">{c.badge}</span>}
-              <h3>{c.titre}</h3>
-              <p>{c.texte}</p>
-              <span class="action">{c.action} <span aria-hidden="true">→</span></span>
-            </div>
-          </a>
-        ))}
-      </div>
+      <span class="eyebrow">Aéroclub de Beauvais-Tillé</span>
+      <h1>{pg.titre}</h1>
+      <p class="lead">{pg.texte.replace('{annees}', String(annees))}</p>
+      <div class="btns"><a class="btn btn-jaune" href={url('/contact?objet=Baptême')}>Réserver un baptême</a><a class="btn btn-ghost" href={url('/formations')}>Devenir pilote</a></div>
     </div>
   </section>
 
-  <section class="section white vedette">
-    <div class="container duo">
-      <div class="duo-img" data-reveal="left"><img {...photo(pg.bapteme.image, '(min-width: 900px) 45vw, 100vw')} alt="" loading="lazy" /></div>
-      <div class="duo-txt">
-        <span class="eyebrow">Baptême de l'air</span>
-        <h2 data-split>{pg.bapteme.titre}</h2>
-        <p class="lead" data-reveal>{pg.bapteme.texte}</p>
-        <ul class="formules" data-stagger>
-          {t.formules.map((x) => (
-            <li><span><b>{x.titre}</b><small>{x.texte}</small></span><strong>{x.prix.length > 1 && <i>dès</i>}{Math.min(...x.prix.map((p) => p.prix)).toLocaleString('fr-FR')} €</strong></li>
-          ))}
-        </ul>
-        <div class="btns">
-          <a class="btn btn-jaune" href={url('/contact?objet=Baptême')}>Réserver un baptême</a>
-          <a class="btn btn-outline" href={url('/contact?objet=Bon cadeau')}>Offrir un baptême</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section dark vedette pilote">
-    <div class="container duo inverse">
-      <div class="duo-img" data-reveal="right"><img {...photo(pg.formation.image, '(min-width: 900px) 45vw, 100vw')} alt="" loading="lazy" /></div>
-      <div class="duo-txt">
-        <span class="eyebrow">Formation de pilote</span>
-        <h2 data-split>{pg.formation.titre}</h2>
-        <p class="lead" data-reveal>{pg.formation.texte}</p>
-        <ol class="parcours" data-stagger>
-          {f.parcours.slice(0, 4).map((e, i) => <li><span>{String(i + 1).padStart(2, '0')}</span>{e.titre}</li>)}
-        </ol>
-        <div class="btns">
-          <a class="btn btn-primary" href={url('/formations')}>Comment ça se passe</a>
-          <a class="btn btn-outline" href={url('/club/tarifs')}>Voir les tarifs</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section confiance">
-    <div class="container conf-in">
-      <h2 data-split>{pg.atouts_titre}</h2>
-      <div class="points" data-stagger>
-        {pg.atouts.map((a, i) => {
-          const v = a.chiffre.replace('{avions}', String(avions.length));
-          const m = v.match(/^(\d+)\s*(%?)$/);
-          return (
-            <div>
-              <svg class="picto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={pictos[i % 3]} />
-              <strong {...(m ? { 'data-count': m[1], 'data-suffix': m[2] ? ' %' : undefined, 'data-from': +m[1] > 1000 ? String(+m[1] - 80) : undefined } : {})}>{v}</strong>
-              <span>{a.texte}{a.lien && <> <a href={url(a.lien)}>{a.lien_texte || 'En savoir plus'}</a></>}</span>
-            </div>
-          );
-        })}
-      </div>
+  <section class="section portes-s">
+    <div class="container portes">
+      {[{ t: "Baptême de l'air", s: 'Découvrir', x: 'Admirez Beauvais depuis le ciel, seul ou accompagné.', i: pg.cartes[0].image, h: '/decouvrir-le-vol' },
+        { t: 'Devenir pilote', s: 'Apprendre', x: 'Du premier vol au brevet, avec nos instructeurs bénévoles.', i: pg.cartes[1].image, h: '/formations' }].map((p) => (
+        <a class="porte" href={url(p.h)}><img {...photo(p.i, '(min-width: 900px) 300px, 40vw')} alt="" /><div><span class="sur">{p.s}</span><h2>{p.t}</h2><p>{p.x}</p></div><em aria-hidden="true">→</em></a>
+      ))}
     </div>
   </section>
 
   <section class="section">
-    <div class="container contact-band">
-      <div class="cb-txt">
-        <span class="label">Nous trouver</span>
-        <h2 data-split>Passez nous voir au club</h2>
-        <p class="lead" data-reveal>Zone aéroplaisance de l'aéroport de Beauvais-Tillé. Adresse, plan d'accès et itinéraire : tout est dans les infos pratiques.</p>
-        <div class="btns" data-stagger>
-          <a class="btn btn-primary" href={url('/club#infos')}>Venir au club</a>
-          <a class="btn btn-outline" href={`tel:${club.telephone.replace(/\s/g, '')}`}>{club.telephone}</a>
-        </div>
+    <div class="container duo">
+      <div>
+        <span class="eyebrow">Baptêmes de l'air</span>
+        <h2>Découvrir Beauvais d'en haut</h2>
+        <p class="lead">Des vols pour découvrir la région ou vivre votre première expérience aux commandes.</p>
+        <img class="d-img" {...photo('/uploads/decouvrir/bapteme-cockpit.jpg', '(min-width: 900px) 640px, 100vw')} alt="" loading="lazy" />
       </div>
-      <figure class="cb-photo" data-reveal="right"><img {...photo(clubHouse, '(min-width: 900px) 50vw, 100vw')} alt="Le club-house de l'ACBT, zone aéroplaisance" loading="lazy" /><figcaption>Le club-house, zone aéroplaisance</figcaption></figure>
+      <div class="exp">
+        <h3>Choisissez votre expérience</h3>
+        <ul>
+          <li><span><b>{passager.titre}</b><small>En passager, avec un pilote du club.</small></span><strong><i>dès</i> {n(des)} €</strong></li>
+          {commandes.map((f) => <li><span><b>{f.titre}</b><small>{f.texte}</small></span><strong>{n(f.prix[0].prix)} €</strong></li>)}
+        </ul>
+        <div class="btns"><a class="btn btn-jaune" href={url('/contact?objet=Baptême')}>Réserver un baptême</a><a class="btn btn-outline" href={url('/decouvrir-le-vol')}>Tous les détails</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="container duo">
+      <div>
+        <span class="eyebrow">Formation de pilote</span>
+        <h2>{pg.formation.titre}</h2>
+        <p class="lead">{pg.formation.texte}</p>
+        <ol class="parcours">{parcours.map((e, i) => <li><span>{String(i + 1).padStart(2, '0')}</span>{e.titre}</li>)}</ol>
+        <div class="btns"><a class="btn btn-primary" href={url('/formations')}>Comment ça se passe</a></div>
+      </div>
+      <img class="d-img haut" {...photo(pg.formation.image, '(min-width: 900px) 640px, 100vw')} alt="" loading="lazy" />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container stats">
+      <h2>{pg.atouts_titre}</h2>
+      {chiffres(flotte.length).map((c, i) => <div><Fragment set:html={ico(pict[i % 3])} /><strong>{c.chiffre}</strong><span>{c.texte}</span></div>)}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container duo">
+      <div>
+        <span class="eyebrow">Nous trouver</span>
+        <h2>Venez nous voir au club</h2>
+        <p class="lead">{club.adresse}</p>
+        <div class="btns"><a class="btn btn-primary" href={url('/contact')}>Nous rendre visite</a></div>
+      </div>
+      <img class="d-img" {...photo(clubHouse, '(min-width: 900px) 640px, 100vw')} alt="Le club-house" loading="lazy" />
     </div>
   </section>
 </Base>
-
 <script>
-  // Vidéos réservées au téléphone, enchaînées l'une après l'autre ; l'ordinateur garde les photos.
-  const vms = [...document.querySelectorAll<HTMLVideoElement>('.h-video-mobile')];
-  if (vms.length && matchMedia('(max-width: 700px)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  // Téléphone : vidéos verticales plein écran, l'une après l'autre. Ordinateur : la vidéo paysage si elle existe.
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const charger = (v: HTMLVideoElement) => { if (!v.src) { v.src = v.dataset.src || ''; v.preload = 'auto'; } };
-    const lancer = (i: number) => {
-      const v = vms[i];
-      charger(v); v.currentTime = 0; v.play().catch(() => {});
-      vms.forEach((x, j) => x.classList.toggle('on', j === i));
-      if (vms.length > 1) charger(vms[(i + 1) % vms.length]);
-    };
-    if (vms.length > 1) vms.forEach((v, i) => v.addEventListener('ended', () => lancer((i + 1) % vms.length)));
-    lancer(0);
+    if (matchMedia('(max-width: 700px)').matches) {
+      const vms = [...document.querySelectorAll<HTMLVideoElement>('.v-mob')];
+      const lancer = (i: number) => {
+        const v = vms[i]; charger(v); v.currentTime = 0; v.play().catch(() => {});
+        vms.forEach((x, j) => x.classList.toggle('on', j === i));
+        if (vms.length > 1) charger(vms[(i + 1) % vms.length]);
+      };
+      if (vms.length > 1) vms.forEach((v, i) => v.addEventListener('ended', () => lancer((i + 1) % vms.length)));
+      if (vms.length) lancer(0);
+    } else {
+      const pc = document.querySelector<HTMLVideoElement>('.v-pc');
+      if (pc) { charger(pc); pc.play().catch(() => {}); }
+    }
   }
 </script>
-
-<script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
-
-  // Avion qui traverse le ciel du hero en laissant une trace pointillée, puis la parallaxe au défilement.
-  if (document.documentElement.classList.contains('motion')) {
-    gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
-    const mm = gsap.matchMedia();
-    mm.add('(min-width: 701px)', () => {
-      const plein = document.getElementById('trace-plein') as unknown as SVGPathElement;
-      const longueur = plein.getTotalLength();
-      gsap.set(plein, { strokeDasharray: longueur, strokeDashoffset: longueur });
-      gsap.set('.vol', { autoAlpha: 1 });
-      gsap.timeline({ delay: 1.2, repeat: -1, repeatDelay: 7 })
-        .set('.trace', { opacity: 1 })
-        .set(plein, { strokeDashoffset: longueur })
-        .to('.avion-svg', { duration: 7, ease: 'power1.inOut', motionPath: { path: '#trace-plein', align: '#trace-plein', alignOrigin: [0.5, 0.5], autoRotate: true } }, 0)
-        .to(plein, { strokeDashoffset: 0, duration: 7, ease: 'power1.inOut' }, 0)
-        .to('.trace', { opacity: 0, duration: 2, ease: 'power2.in' }, 7.5);
-
-      const scroll = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true };
-      gsap.to('.slides', { yPercent: 18, ease: 'none', scrollTrigger: scroll });
-      gsap.to('.vol', { yPercent: 30, ease: 'none', scrollTrigger: scroll });
-      gsap.to('.hero .texte', { y: -90, opacity: 0.15, ease: 'none', scrollTrigger: scroll });
-    });
-  }
-
-  const imgs = [...document.querySelectorAll<HTMLImageElement>('.slides img')];
-  const n = document.getElementById('slide-n');
-  const l = document.getElementById('slide-l');
-  let i = 0;
-  if (imgs.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    setInterval(() => {
-      imgs[i].classList.remove('on');
-      i = (i + 1) % imgs.length;
-      imgs[i].loading = 'eager';
-      imgs[i].classList.add('on');
-      if (n) n.textContent = String(i + 1).padStart(2, '0');
-      if (l) l.textContent = imgs[i].alt;
-    }, 6000);
-  }
-</script>
-
 <style>
-  .hero { position: relative; min-height: min(86vh, 800px); padding-top: 84px; display: flex; color: #fff; background: var(--ink); overflow: hidden; }
-  .slides { position: absolute; inset: 0; }
-  .slides img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; opacity: 0; transform: scale(1.06); transition: opacity 1.4s ease, transform 7s ease-out; }
-  .slides img.on { opacity: 1; transform: scale(1); }
-  .voile { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,43,80,.92) 0%, rgba(8,43,80,.62) 42%, rgba(8,43,80,.12) 75%), linear-gradient(0deg, rgba(8,43,80,.75) 0%, transparent 45%); }
-  .vol { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; visibility: hidden; }
-  .trace { fill: none; stroke: rgba(255,255,255,.7); stroke-width: 2; stroke-dasharray: 2 12; stroke-linecap: round; }
-  .avion-svg path { fill: #fff; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
-  @media (max-width: 700px) { .vol { display: none; } }
-  .hero-inner { position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: clamp(48px, 8vh, 96px) 0 clamp(96px, 13vh, 140px); }
-  .hero h1 { font-size: clamp(2.4rem, 6vw, 5rem); }
-  .hero h1 { color: #fff; max-width: 14ch; text-shadow: 0 2px 24px rgba(0,0,0,.25); }
-  .hero .lead { font-size: 1.2rem; }
-  .hero .eyebrow { color: #fff; }
-  .hero .lead { color: rgba(255,255,255,.88); max-width: 46ch; }
-  /* Mobile : la photo passe au-dessus, le texte sur fond uni pour rester lisible. */
-  .h-video-mobile { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s ease; }
-  .h-video-mobile.on { opacity: 1; }
-  /* Téléphone avec vidéo : plein écran, texte posé en bas de la vidéo */
+  /* Vidéos sous le dégradé : le dégradé est redessiné par-dessus (::before), le texte reste au-dessus */
+  .media { position: absolute; inset: 0; z-index: 0; }
+  .media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+  .hero::before { content: none; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(8,43,80,.9) 0%, rgba(8,43,80,.55) 45%, rgba(8,43,80,.1) 100%), linear-gradient(0deg, rgba(8,43,80,.55) 0%, transparent 45%); }
+  .hero > .container { position: relative; z-index: 2; }
+  @media (min-width: 701px) { .v-pc { display: block !important; } .hero:has(.v-pc)::before { content: ''; } }
   @media (max-width: 700px) {
-    .hero.a-video { height: 100svh; min-height: 560px; padding-top: 0; flex-direction: column; justify-content: flex-end; }
-    .hero.a-video .slides, .hero.a-video .voile { position: absolute; inset: 0; height: auto; max-height: none; }
-    .hero.a-video .voile { background: linear-gradient(180deg, rgba(8,43,80,.55) 0%, rgba(8,43,80,0) 28%, rgba(8,43,80,0) 50%, rgba(8,43,80,.85) 100%); }
-    .hero.a-video .h-video-mobile { display: block; }
-    .hero.a-video .hero-inner { padding: 0 0 60px; }
-    /* Texte bas sur la vidéo : affiché tout de suite, sans attendre le défilement */
-    .hero.a-video .lead { visibility: visible !important; opacity: 1 !important; transform: none !important; }
-    .hero.a-video h1 { font-size: 2.3rem; }
-  }
-  @media (max-width: 700px) {
-    .hero:not(.a-video) { flex-direction: column; min-height: 0; padding-top: 0; }
-    .hero:not(.a-video) .slides { position: relative; height: calc(min(46vw, 260px) + 120px); overflow: hidden; }
-    .hero:not(.a-video) .voile { inset: 0 0 auto 0; height: calc(min(46vw, 260px) + 120px); background: linear-gradient(180deg, rgba(8,43,80,.55) 0%, rgba(8,43,80,0) 40%, rgba(8,43,80,0) 60%, var(--ink) 100%); }
-    .hero-inner { padding: 0 0 22px; }
-    .hero .eyebrow { display: none; }
-    .hero h1 { font-size: 1.65rem; margin-bottom: .3em; max-width: 18ch; }
-    .hero .lead { font-size: .95rem; margin: 0; line-height: 1.5; }
-    .hero .lead { color: rgba(255,255,255,.82); }
+    .hero.a-video { min-height: 100svh; padding-bottom: 48px; }
+    .hero.a-video .v-mob { display: block; opacity: 0; transition: opacity .8s; }
+    .hero.a-video .v-mob.on { opacity: 1; }
+    .hero.a-video::before { content: ''; background: linear-gradient(180deg, rgba(8,43,80,.5) 0%, rgba(8,43,80,0) 28%, rgba(8,43,80,0) 45%, rgba(8,43,80,.9) 100%); }
+    .hero h1 { font-size: 2.4rem; }
     .hero .btns .btn { flex: 1 1 auto; justify-content: center; }
   }
-
-
-
-
-  .facons { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
-  .facons :global(.carte) { min-height: 0; }
-  .facons :global(.carte .img) { aspect-ratio: 3 / 2; flex: none; min-height: 0; }
-  @media (max-width: 860px) { .facons { grid-template-columns: 1fr; } .facons :global(.carte) { min-height: 0; } }
-  /* Les deux grands choix (baptême / devenir pilote), à cheval sur la photo */
-  .choix-section { position: relative; z-index: 2; padding-bottom: clamp(32px, 5vw, 56px); }
-  .question { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  .choix { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; margin-top: -72px; }
-  .choix-carte { --c: var(--sun); position: relative; display: grid; grid-template-columns: 42% 1fr; min-height: 210px; border-radius: 20px; overflow: hidden; background: #fff; border: 1px solid var(--line); text-decoration: none; color: inherit; box-shadow: 0 18px 40px rgba(15,27,45,.12); transition: transform .25s, box-shadow .25s; }
-  .choix-carte:hover { transform: translateY(-3px); box-shadow: 0 22px 50px rgba(15,27,45,.18); color: inherit; }
-  .c-apprendre { --c: var(--marine); } .c-voler { --c: var(--ciel); }
-  .choix-carte img { width: 100%; height: 100%; object-fit: cover; }
-  .choix-texte { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 18px 20px; border-top: 4px solid var(--c); }
-  .choix-texte h3 { font-size: clamp(1.2rem, 2.2vw, 1.55rem); margin: 0; }
-  .choix-texte p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.4; }
-  .badge { font-size: .75rem; font-weight: 700; letter-spacing: .04em; padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; }
-  .action { margin-top: auto; padding-top: 8px; font-weight: 600; color: var(--marine); font-size: .95rem; }
-  .choix-carte.secondaire { grid-column: 1 / -1; grid-template-columns: 1fr; min-height: 0; box-shadow: none; background: transparent; }
-  .secondaire img { display: none; }
-  .secondaire .choix-texte { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 14px 20px; border-top: 0; border-left: 4px solid var(--c); }
-  .secondaire h3 { font-size: 1.1rem; }
-  .secondaire .action { margin: 0 0 0 auto; padding: 0; }
-  @media (max-width: 700px) {
-    .choix { grid-template-columns: 1fr; margin-top: 12px; gap: 10px; }
-    .choix-section { padding-bottom: 28px; }
-    .choix-carte { grid-template-columns: 34% 1fr; min-height: 0; box-shadow: 0 8px 22px rgba(15,27,45,.08); }
-    .choix-texte { padding: 12px 14px; border-top: 0; border-left: 4px solid var(--c); }
-    .choix-texte p { display: none; }
-    .choix-texte h3 { font-size: 1.15rem; }
-    .choix-carte img { min-height: 104px; }
-    .action { padding-top: 4px; font-size: .9rem; }
-    .secondaire .choix-texte { padding: 12px 14px; }
-    .secondaire p { display: none; }
-  }
-  .confiance { background: var(--white); }
-  /* Chiffres du club : titre à gauche, trois chiffres avec picto à droite, sur une ligne */
-  .conf-in { display: grid; grid-template-columns: minmax(220px, 1fr) 3fr; gap: 32px; align-items: center; padding: 28px 0; border-block: 1px solid var(--line); }
-  .confiance h2 { margin: 0; font-size: clamp(1.6rem, 2.6vw, 2.2rem); position: relative; padding-bottom: 14px; }
-  .confiance h2::after { content: ''; position: absolute; left: 0; bottom: 0; width: 36px; height: 3px; border-radius: 2px; background: var(--sun); }
-  .points { display: grid; gap: 24px; grid-template-columns: repeat(3, 1fr); }
-  .points div { display: grid; grid-template-columns: auto 1fr; column-gap: 16px; align-items: center; padding-left: 24px; border-left: 1px solid var(--line); }
-  .picto { grid-row: span 2; width: 38px; height: 38px; color: var(--marine); }
-  .points strong { font-family: var(--font-title); font-size: 2.3rem; line-height: 1.05; color: var(--marine); }
-  .points span { color: var(--muted); font-size: .93rem; line-height: 1.4; }
-  @media (max-width: 899px) { .conf-in { grid-template-columns: 1fr; gap: 20px; } }
-  @media (max-width: 700px) { .points { grid-template-columns: 1fr; gap: 16px; } .points div { padding-left: 0; border-left: 0; } .points strong { font-size: 1.8rem; } }
-  /* Passez nous voir : texte à gauche, photo du club-house à droite (plus de grand vide) */
-  .contact-band { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
-  .cb-photo { margin: 0; position: relative; border-radius: 24px; overflow: hidden; aspect-ratio: 16 / 10; }
-  .cb-photo img { width: 100%; height: 100%; object-fit: cover; }
-  .cb-photo figcaption { position: absolute; left: 14px; bottom: 14px; background: rgba(8,43,80,.78); color: #fff; font-size: .82rem; padding: 5px 12px; border-radius: 999px; }
-  @media (max-width: 899px) { .contact-band { grid-template-columns: 1fr; } }
-  /* Météo du terrain : fine bande posée en haut de la photo d'accueil */
-  .hero-metar { position: absolute; top: 84px; left: 0; right: 0; z-index: 2; padding: 8px 0; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
-  @media (max-width: 700px) {
-    .hero-metar { padding: 6px 0; }
-    .hero-metar :global(.metar) { gap: 8px; flex-wrap: nowrap; align-items: flex-start; }
-    .hero-metar :global(.raw) { font-size: .7rem; line-height: 1.35; }
-    .hero-metar :global(.station), .hero-metar :global(.etat b) { display: none; }
-    .hero-metar :global(.etat) { margin-top: 4px; }
-    /* Sur la vidéo plein écran : METAR brut posé directement sur l'image, comme Horizon */
-    .hero.a-video .hero-metar { background: none; backdrop-filter: none; border: 0; padding: 4px 0 0; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
-    .hero.a-video .hero-metar :global(.metar) { flex-wrap: wrap; gap: 6px 18px; align-items: center; }
-    .hero.a-video .hero-metar :global(.station), .hero.a-video .hero-metar :global(.etat b) { display: inline; }
-    .hero.a-video .hero-metar :global(.etat) { margin-top: 0; }
-    .hero.a-video .hero-metar :global(.raw) { flex-basis: 100%; font-size: .78rem; line-height: 1.6; }
-  }
-  .contact-band .btns { margin-top: 20px; }
-
-  /* Mises en avant : baptême puis formation, photo d'un côté et l'essentiel de l'autre */
-  .duo { display: grid; gap: clamp(24px, 4vw, 56px); grid-template-columns: 1fr 1fr; align-items: center; }
-  .duo.inverse .duo-img { order: 2; }
-  .duo-img { border-radius: 24px; overflow: hidden; aspect-ratio: 4 / 3; }
-  .duo-img img { width: 100%; height: 100%; object-fit: cover; }
-  .vedette .eyebrow { color: var(--accent-fonce); }
-  .vedette .lead { margin: 0 0 20px; font-size: 1.08rem; }
-  .vedette.pilote { --accent: #00A8EF; --accent-fonce: var(--marine); }
-  .formules { list-style: none; margin: 0 0 22px; padding: 0; border-top: 1px solid var(--line); }
-  .formules li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
-  .formules span { display: flex; flex-direction: column; min-width: 0; }
-  .formules b { font-family: var(--font-title); font-weight: 600; font-size: 1.08rem; color: var(--ink); }
-  .formules small { color: var(--muted); font-size: .86rem; line-height: 1.35; }
-  .formules strong { flex: none; font-family: var(--font-title); font-size: 1.5rem; color: var(--accent-fonce); white-space: nowrap; }
-  .formules i { font-style: normal; font-family: var(--font-body); font-size: .78rem; font-weight: 500; color: var(--muted); margin-right: 6px; }
-  /* Parcours en 4 étapes reliées par une ligne fine (au lieu de 4 cases blanches) */
-  .parcours { list-style: none; margin: 8px 0 30px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; color: #fff !important; }
-  .parcours li { position: relative; display: flex; flex-direction: column; gap: 12px; font-family: var(--font-title); font-weight: 600; font-size: .98rem; line-height: 1.25; color: #fff; }
+  .hero { min-height: min(78vh, 720px); }
+  .hero h1 { font-size: clamp(2.6rem, 6vw, 5rem); max-width: 13ch; }
+  .hero .btns { margin-top: 26px; }
+  .hero { padding-bottom: 110px; }
+  .dark .duo > div > h2 { color: #fff; } .dark .duo > div > .eyebrow { color: rgba(255,255,255,.75); } .dark .duo > div > .lead { color: rgba(255,255,255,.85); }
+  .portes-s { padding-top: 0; margin-top: -60px; position: relative; z-index: 2; }
+  .portes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .porte { position: relative; display: grid; grid-template-columns: 220px 1fr; gap: 22px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 12px; text-decoration: none; color: inherit; box-shadow: 0 24px 50px -28px rgba(8,43,80,.45); }
+  .porte img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; }
+  .porte h2 { font-size: 1.6rem; margin: 2px 0 6px; } .porte p { color: var(--muted); margin: 0; font-size: .95rem; padding-right: 30px; }
+  .sur { font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--rouge); }
+  .porte em { position: absolute; right: 20px; bottom: 16px; font-style: normal; color: var(--rouge); font-size: 1.4rem; }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 64px); align-items: center; }
+  .d-img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 22px; margin-top: 10px; }
+  .d-img.haut { aspect-ratio: 4 / 3; }
+  .exp { border: 1px solid var(--line); border-radius: 22px; padding: 30px; }
+  .exp ul { list-style: none; margin: 12px 0 24px; padding: 0; }
+  .exp li { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); }
+  .exp b { display: block; font-family: var(--font-title); font-size: 1.15rem; color: var(--ink); } .exp small { color: var(--muted); }
+  .exp strong { font-family: var(--font-title); font-size: 1.6rem; color: var(--marine); white-space: nowrap; } .exp i { font-style: normal; font-size: .85rem; color: var(--muted); font-family: var(--font-body); }
+  .parcours { list-style: none; margin: 8px 0 28px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .parcours li { position: relative; display: flex; flex-direction: column; gap: 12px; font-family: var(--font-title); font-weight: 600; color: #fff; font-size: .98rem; }
   .parcours li::before { content: ''; position: absolute; top: 22px; left: 54px; right: -4px; height: 2px; background: rgba(255,255,255,.3); }
   .parcours li:last-child::before { display: none; }
-  .parcours span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; color: #fff; font-size: .95rem; }
-  .parcours li:first-child span { background: var(--rouge); border-color: var(--rouge); color: #fff; }
+  .parcours span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; }
+  .parcours li:first-child span { background: var(--rouge); border-color: var(--rouge); }
+  .stats { display: grid; grid-template-columns: 1.2fr repeat(3, 1fr); gap: 24px; align-items: center; padding: 26px 0; border-block: 1px solid var(--line); }
+  .stats h2 { margin: 0; font-size: clamp(1.6rem, 2.6vw, 2.2rem); }
+  .stats > div { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; border-left: 1px solid var(--line); padding-left: 22px; }
+  .stats :global(svg) { grid-row: span 2; width: 36px; height: 36px; color: var(--marine); }
+  .stats strong { font-family: var(--font-title); font-size: 2.2rem; color: var(--marine); line-height: 1.05; } .stats span { color: var(--muted); font-size: .9rem; }
   @media (max-width: 899px) {
-    .duo { grid-template-columns: 1fr; }
-    .duo.inverse .duo-img { order: 0; }
-    .duo-img { aspect-ratio: 16 / 9; border-radius: 18px; }
-    .vedette .btns .btn { flex: 1 1 auto; justify-content: center; }
-  }
-  @media (max-width: 599px) {
-    .formules small { display: none; }
-    .parcours { grid-template-columns: 1fr 1fr; row-gap: 20px; }
-    .parcours li:nth-child(2)::before { display: none; }
+    .portes, .duo { grid-template-columns: 1fr; } .porte { grid-template-columns: 120px 1fr; }
+    .portes-s { margin-top: 20px; } .stats { grid-template-columns: 1fr; } .stats > div { border: 0; padding: 0; }
+    .parcours { grid-template-columns: 1fr 1fr; row-gap: 20px; } .parcours li:nth-child(2)::before { display: none; }
   }
 </style>
