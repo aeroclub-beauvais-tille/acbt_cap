@@ -1,84 +1,72 @@
 ---
-import { photo, photoUrl } from '../lib/photo';
-// Page Baptêmes : les prix doivent être lisibles dès l'ouverture, sans faire défiler, sur téléphone comme sur tablette.
-// Tout vient du back-office : formules et prix (Tarifs), textes (Page Découvrir), titre et photo (Pages du site).
+// Page Baptême (proposition B choisie par Hugo le 25/11) : les trois formules côte à côte comme une grille de prix,
+// puis le jour J à côté d'une grande photo, puis les questions. Tout vient du back-office (Tarifs, Page Découvrir).
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
-import Etapes from '../components/Etapes.astro';
 import Faq from '../components/Faq.astro';
-import d from '../data/decouvrir.json';
 import pages from '../data/pages.json';
-import club from '../data/club.json';
-import t from '../data/tarifs.json';
-import { url, asset } from '../lib/utils';
-const n = (x: number) => x.toLocaleString('fr-FR');
-const tel = `tel:${club.telephone.replace(/\s/g, '')}`;
-// Bandeau « Bon à savoir » sous la photo : l'essentiel en quatre repères, tiré des questions fréquentes
-const reperes = [
-  { titre: 'Départ', texte: 'Club-house, zone aéroplaisance de Beauvais-Tillé', svg: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>' },
-  { titre: 'Météo', texte: 'Vol reporté sans frais si le temps ne permet pas de voler', svg: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>' },
-  { titre: 'Idée cadeau', texte: 'Toutes les formules existent en bon cadeau', svg: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>' },
-  { titre: 'Règlement', texte: 'Virement, chèque ou espèces', svg: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>' },
+import d from '../data/decouvrir.json';
+import { photo } from '../lib/photo';
+import { url } from '../lib/utils';
+import { n, passager, commandes, des, photoCommandes, etapes, questions, svg, ico, pictosEtapes, tel, telHref } from '../lib/bapteme';
+const cols = [
+  { mode: 'En passager', icone: svg.oeil, titre: passager.titre, texte: passager.texte, prix: des, des: true, objet: 'Vol découverte', details: passager.prix },
+  ...commandes.map((f, i) => ({ mode: 'Aux commandes', icone: svg.volant, titre: f.titre, texte: f.texte, prix: f.prix[0].prix, des: false, objet: "Vol d'initiation", details: [] as { libelle: string; prix: number }[], fort: i === 0 })),
 ];
 ---
-<Base univers="decouvrir" title="Baptême de l'air" description={`Baptême de l'air, vol découverte et vol d'initiation à Beauvais-Tillé, dès ${n(Math.min(...t.formules.flatMap((f) => f.prix.map((p) => p.prix))))} €.`}>
+<Base univers="decouvrir" title="Baptême de l'air" description={`Baptême de l'air, vol découverte et vol d'initiation à Beauvais-Tillé, dès ${n(des)} €.`}>
   <PageHead eyebrow="Baptême de l'air" image={pages.decouvrir.image} title={pages.decouvrir.titre} lead={d.accroche}>
-    <div class="cta-tete">
-      <a class="btn btn-jaune" href={url('/contact?objet=Vol découverte')}>Réserver un baptême</a>
-    </div>
+    <div class="btns" style="margin-top:22px"><a class="btn btn-jaune" href={url('/contact?objet=Vol découverte')}>Réserver un baptême</a></div>
   </PageHead>
- <section class="offre">
+
+  <section class="section">
     <div class="container">
-      <span class="eyebrow">Nos formules</span>
-      <h2 class="o-titre">Choisissez votre vol</h2>
-      <div class="prix" aria-label="Formules et prix">
-        {t.formules.map((f) => (
-          <article class:list={['formule', { multi: f.prix.length > 1 }]}>
-            <div class="f-tete">
-              <h2><span class="f-type">{/d[ée]couverte|bapt[eê]me/i.test(f.titre) ? 'En passager' : 'Aux commandes'}</span>{f.titre}</h2>
-              {f.prix.length === 1 && <p class="montant"><b>{n(f.prix[0].prix)} €</b></p>}
-            </div>
-            <p class="f-texte">{f.texte}</p>
-            {f.prix.length > 1 && (
-              <ul class="tuiles">{f.prix.map((p) => <li><b>{n(p.prix)} €</b><span>{p.libelle}</span></li>)}</ul>
-            )}
+      <div class="tete">
+        <div><span class="eyebrow">Nos formules</span><h2>Choisissez votre vol</h2></div>
+        <p>Toutes les formules existent en <a href={url('/contact?objet=Bon cadeau')}>bon cadeau</a>. Règlement par virement, chèque ou espèces.</p>
+      </div>
+      <div class="grille">
+        {cols.map((c: any) => (
+          <article class:list={['col', { fort: c.fort }]}>
+            <span class="mode"><Fragment set:html={ico(c.icone)} /> {c.mode}</span>
+            <h3>{c.titre}</h3>
+            <p class="prix">{c.des && <small>dès</small>}<b>{n(c.prix)}</b> €</p>
+            <p class="txt">{c.texte}</p>
+            {c.details.length > 0 && <ul>{c.details.map((p: any) => <li><span>{p.libelle}</span><b>{n(p.prix)} €</b></li>)}</ul>}
+            <a class="btn btn-jaune" href={url(`/contact?objet=${c.objet}`)}>Réserver</a>
           </article>
         ))}
       </div>
-      {d.photo && <img class="offre-photo" {...photo(d.photo, '(min-width: 1200px) 1380px, 100vw')} alt="" loading="eager" />}
-      <ul class="reperes" aria-label="Bon à savoir">
-        {reperes.map((r) => (
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={r.svg} /><span><b>{r.titre}</b>{r.texte}</span></li>
-        ))}
-      </ul>
     </div>
   </section>
 
-  {d.deroulement.length > 0 && (
-    <section class="section dark">
-      <div class="container">
+  <section class="section dark">
+    <div class="container jour">
+      <div class="j-photo"><img {...photo(photoCommandes, '(min-width: 900px) 600px, 100vw')} alt="" loading="lazy" /></div>
+      <div>
         <span class="eyebrow">Le jour J</span>
         <h2>{d.deroulement_titre}</h2>
-        <p class="lead">{d.intro}</p>
-        <Etapes etapes={d.deroulement} />
+        <ol class="fil">
+          {etapes.map((e, i) => <li><i set:html={ico(pictosEtapes[i % 4])} /><div><h3>{e.titre}</h3><p>{e.texte}</p></div></li>)}
+        </ol>
       </div>
-    </section>
-  )}
-  {d.questions.length > 0 && (
-    <section class="section">
-      <div class="container">
-        <span class="eyebrow">Questions fréquentes</span>
-        <h2 data-split>{pages.decouvrir.intertitres.savoir}</h2>
-        <Faq questions={d.questions} />
-      </div>
-    </section>
-  )}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <span class="eyebrow">Questions fréquentes</span>
+      <h2>Bon à savoir</h2>
+      <Faq questions={questions} />
+    </div>
+  </section>
   <div class="barre-mobile">
     <a class="btn btn-jaune" href={url('/contact?objet=Vol découverte')}>Réserver un baptême</a>
-    <a class="btn btn-outline" href={tel} aria-label={`Appeler le ${club.telephone}`}>Appeler</a>
+    <a class="btn btn-outline" href={telHref} aria-label={`Appeler le ${tel}`}>Appeler</a>
   </div>
 </Base>
 <script>
+  // Téléphone : la barre Réserver / Appeler n'arrive qu'une fois le bandeau du haut sorti de l'écran
   const barre = document.querySelector('.barre-mobile');
   const tete = document.querySelector('.page-head');
   if (barre && tete && 'IntersectionObserver' in window) {
@@ -86,64 +74,41 @@ const reperes = [
   } else barre?.classList.add('visible');
 </script>
 <style>
-  .cta-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-top: 22px; }
-  .offre { padding: clamp(28px, 4vw, 56px) 0; background: var(--paper); }
-  .prix { display: grid; gap: 10px; align-content: start; }
-  .formule { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
-  .f-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
-  .formule h2 { font-size: 1.15rem; margin: 0 0 2px; letter-spacing: -.01em; }
-  .formule p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.4; }
-  .montant { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; text-align: right; }
-  .montant b, .tuiles b { font-family: var(--font-title); font-weight: 700; color: var(--accent-fonce); line-height: 1; }
-  .montant b { font-size: 1.75rem; }
-  .montant span { font-size: .78rem !important; color: var(--muted); white-space: nowrap; }
-  .f-texte { margin-top: 4px !important; }
-  .o-titre { margin: 0 0 22px; }
-  @media (max-width: 599px) { .offre .eyebrow, .o-titre { display: none; } }
-  .reperes { list-style: none; margin: 18px 0 0; padding: 18px 22px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; border: 1px solid var(--line); border-radius: 18px; }
-  .reperes li { display: flex; gap: 12px; align-items: flex-start; font-size: .9rem; color: var(--muted); line-height: 1.4; }
-  .reperes li + li { border-left: 1px solid var(--line); padding-left: 18px; }
-  .reperes svg { flex: none; width: 28px; height: 28px; color: var(--marine); }
-  .reperes b { display: block; font-family: var(--font-title); color: var(--ink); font-size: 1rem; }
-  @media (max-width: 899px) { .reperes { grid-template-columns: 1fr 1fr; } .reperes li:nth-child(3) { border-left: 0; padding-left: 0; } }
-  @media (max-width: 499px) { .reperes { grid-template-columns: 1fr; } .reperes li + li { border-left: 0; padding-left: 0; } }
-  .offre-photo { display: block; width: 100%; aspect-ratio: 21 / 7; object-fit: cover; object-position: 50% 40%; border-radius: 18px; margin-top: 14px; }
-  @media (max-width: 599px) { .offre-photo { aspect-ratio: 16 / 9; margin-top: 8px; border-radius: 16px; } }
-  @media (min-width: 900px) { .formule { padding: 16px 20px; } .formule h2 { font-size: 1.3rem; } .formule p { font-size: .92rem; } .montant b { font-size: 2rem; } }
-  /* Carte menu : sur-titre passager / aux commandes, prix alignés à droite */
-  .formule { border-top: 4px solid var(--accent); }
-  .formule:not(.multi) { border-top-color: var(--sun); }
-  .f-type { display: block; font-family: var(--font-body); font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
-  .tuiles { list-style: none; display: block; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--line); }
-  .tuiles li { display: flex; align-items: baseline; gap: 8px; padding: 10px 0; background: none; border-radius: 0; border-bottom: 1px dashed var(--line); }
-  .tuiles li:last-child { border-bottom: 0; padding-bottom: 0; }
-  .tuiles li span { order: -1; flex: 1; font-size: .95rem; color: var(--text); line-height: 1.3; }
-  .tuiles li b { font-size: 1.35rem; flex: none; }
-  /* Ordinateur : vol découverte à gauche, les deux formules d'initiation empilées à droite */
-  @media (min-width: 900px) { .prix { grid-template-columns: 1fr 1fr; gap: 14px; } .formule.multi { grid-row: span 2; } }
-  /* Petit téléphone : on va à l'essentiel pour que les trois formules tiennent à l'écran */
-  @media (max-width: 599px) {
-    .offre { padding: 16px 0 20px; }
-    .prix { gap: 8px; }
-    .formule { padding: 12px 14px; border-radius: 16px; }
-    .montant b { font-size: 1.5rem; }
-  }
-  /* Très petits téléphones (iPhone SE…) : prix au-dessus du libellé pour éviter les retours à la ligne */
-  @media (max-width: 359px) {
-
-    .formule h2 { font-size: 1.05rem; }
-  }
-  @media (max-width: 599px) {
-  }
-  .white .lead { margin-bottom: 24px; }
-
-  /* Téléphone : réserver ou appeler reste toujours à portée de pouce */
   .barre-mobile { display: none; }
   @media (max-width: 899px) {
-    .barre-mobile { position: sticky; bottom: 0; z-index: 40; display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.94); backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
+    .barre-mobile { position: sticky; bottom: 0; z-index: 40; display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.94); backdrop-filter: blur(10px); border-top: 1px solid var(--line); transition: transform .3s ease, opacity .3s ease; }
     .barre-mobile .btn { justify-content: center; padding: 12px 16px; }
-    /* La barre n'arrive qu'une fois le bandeau du haut sorti de l'écran, pour ne pas doubler son bouton */
-    .barre-mobile { transition: transform .3s ease, opacity .3s ease; }
     .barre-mobile:not(.visible) { transform: translateY(110%); opacity: 0; pointer-events: none; }
   }
+  .tete { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+  .tete h2 { margin: 0; }
+  .tete p { max-width: 42ch; color: var(--muted); margin: 0; }
+  .grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
+  .col { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 22px; padding: 28px; background: #fff; }
+  .col.fort { border: 2px solid var(--marine); }
+  .mode { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ciel); }
+  .mode :global(svg) { width: 18px; height: 18px; }
+  .col h3 { font-size: 1.5rem; margin: 12px 0 6px; }
+  .prix { margin: 0 0 12px; font-family: var(--font-title); color: var(--marine); font-size: 1.4rem; }
+  .prix b { font-size: 3.4rem; line-height: 1; letter-spacing: -.03em; }
+  .prix small { font-size: .95rem; color: var(--muted); margin-right: 6px; font-family: var(--font-body); }
+  .txt { color: var(--muted); font-size: .95rem; }
+  .col ul { list-style: none; margin: 0 0 8px; padding: 0; border-top: 1px solid var(--line); }
+  .col li { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: .95rem; }
+  .col li b { font-family: var(--font-title); color: var(--marine); }
+  .col .btn { margin-top: auto; justify-content: center; }
+  .col > p.txt + .btn, .col ul + .btn { margin-top: auto; }
+  .jour { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(28px, 5vw, 72px); align-items: center; }
+  .j-photo { border-radius: 24px; overflow: hidden; aspect-ratio: 4 / 5; }
+  .j-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .jour h2 { color: #fff; } .jour .eyebrow { color: rgba(255,255,255,.75); }
+  .fil { list-style: none; margin: 24px 0 0; padding: 0; color: #fff; }
+  .fil li { position: relative; display: flex; gap: 20px; padding-bottom: 26px; }
+  .fil li:not(:last-child)::before { content: ''; position: absolute; left: 25px; top: 54px; bottom: 4px; width: 2px; background: rgba(255,255,255,.25); }
+  .fil i { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #fff; color: var(--marine); }
+  .fil li:first-child i { background: var(--rouge); color: #fff; }
+  .fil i :global(svg) { width: 24px; height: 24px; }
+  .fil h3 { color: #fff; font-size: 1.2rem; margin: 4px 0 4px; }
+  .fil p { color: rgba(255,255,255,.8); margin: 0; font-size: .96rem; }
+  @media (max-width: 899px) { .grille, .jour { grid-template-columns: 1fr; } .j-photo { aspect-ratio: 16 / 9; } }
 </style>
