@@ -1,0 +1,133 @@
+---
+// Proposition C : prix et réservation dès la bannière, onglets En passager / Aux commandes, jour J en pictos, bande « Offrir ».
+import Base from '../../layouts/Base.astro';
+import Faq from '../../components/Faq.astro';
+import pages from '../../data/pages.json';
+import d from '../../data/decouvrir.json';
+import { photo, photoUrl } from '../../lib/photo';
+import { url } from '../../lib/utils';
+import { n, passager, commandes, des, photoPassager, photoCommandes, etapes, questions, svg, ico, pictosEtapes, tel, telHref } from '../../lib/bapteme';
+---
+<Base univers="decouvrir" title="Baptême de l'air (proposition C)">
+  <section class="page-head has-img" style={`--img: url('${photoUrl(pages.decouvrir.image)}')`}>
+    <div class="container h-grille">
+      <div>
+        <span class="eyebrow">Baptême de l'air</span>
+        <h1>{pages.decouvrir.titre.replace(/-/g, '\u2011')}</h1>
+        <p class="lead">{d.accroche}</p>
+      </div>
+      <div class="h-carte">
+        <p class="h-des">Dès <b>{n(des)} €</b></p>
+        <p class="h-sous">Vol découverte en passager, ou vol d'initiation aux commandes</p>
+        <a class="btn btn-jaune" href={url('/contact?objet=Vol découverte')}>Réserver un baptême</a>
+        <a class="btn btn-outline" href={url('/contact?objet=Bon cadeau')}>Offrir en bon cadeau</a>
+        <a class="h-tel" href={telHref}><Fragment set:html={ico(svg.tel)} /> {tel}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <span class="eyebrow">Nos formules</span>
+      <h2>Vous voulez regarder, ou piloter ?</h2>
+      <div class="onglets">
+        <input type="radio" name="vue" id="v-pass" checked /><input type="radio" name="vue" id="v-cmd" />
+        <div class="o-boutons"><label for="v-pass"><Fragment set:html={ico(svg.oeil)} /> En passager</label><label for="v-cmd"><Fragment set:html={ico(svg.volant)} /> Aux commandes</label></div>
+        <div class="o-panneau p-pass">
+          <img {...photo(photoPassager, '(min-width: 900px) 640px, 100vw')} alt="" />
+          <div>
+            <h3>{passager.titre}</h3>
+            <p>{passager.texte}</p>
+            <div class="tuiles">{passager.prix.map((p) => <div><b>{n(p.prix)} €</b><span>{p.libelle}</span></div>)}</div>
+            <a class="btn btn-jaune" href={url('/contact?objet=Vol découverte')}>Réserver un vol découverte</a>
+          </div>
+        </div>
+        <div class="o-panneau p-cmd">
+          <img {...photo(photoCommandes, '(min-width: 900px) 640px, 100vw')} alt="" />
+          <div>
+            <h3>Prendre les commandes</h3>
+            <p>Avec un instructeur du club, c'est vous qui pilotez.</p>
+            <div class="tuiles deux">{commandes.map((f) => <div><b>{n(f.prix[0].prix)} €</b><span><strong>{f.titre}</strong>{f.texte}</span></div>)}</div>
+            <a class="btn btn-jaune" href={url("/contact?objet=Vol d'initiation")}>Réserver un vol d'initiation</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <span class="eyebrow">Le jour J</span>
+      <h2>{d.deroulement_titre}</h2>
+      <ol class="jour">
+        {etapes.map((e, i) => <li><i set:html={ico(pictosEtapes[i % 4])} /><span class="num">{i + 1}</span><h3>{e.titre}</h3><p>{e.texte}</p></li>)}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="container cadeau">
+      <div>
+        <span class="eyebrow">Idée cadeau</span>
+        <h2>Offrez un baptême de l'air</h2>
+        <p class="lead">{d.bon_cadeau} La personne choisit ensuite sa date avec le club.</p>
+        <div class="btns"><a class="btn btn-jaune" href={url('/contact?objet=Bon cadeau')}>Commander un bon cadeau</a></div>
+      </div>
+      <div class="c-icone" set:html={ico(svg.cadeau)} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <span class="eyebrow">Questions fréquentes</span>
+      <h2>Bon à savoir</h2>
+      <div class="faq2"><Faq questions={questions} /></div>
+    </div>
+  </section>
+</Base>
+<style>
+  .h-grille { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: end; }
+  .h-grille h1 { color: #fff; font-size: clamp(2.2rem, 4.4vw, 3.6rem); max-width: 15ch; }
+  .h-carte { background: #fff; border-radius: 22px; padding: 26px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 30px 60px -30px rgba(0,0,0,.5); }
+  .h-des { margin: 0; font-family: var(--font-title); color: var(--marine); font-size: 1.3rem; }
+  .h-des b { font-size: 3rem; letter-spacing: -.03em; }
+  .h-sous { margin: 0 0 6px; color: var(--muted); font-size: .92rem; }
+  .h-carte .btn { justify-content: center; }
+  .h-tel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; font-weight: 600; color: var(--marine); text-decoration: none; }
+  .h-tel :global(svg) { width: 18px; height: 18px; }
+  .onglets { margin-top: 8px; }
+  .onglets input { position: absolute; opacity: 0; pointer-events: none; }
+  .o-boutons { display: inline-flex; padding: 5px; border-radius: 999px; border: 1px solid var(--line); margin-bottom: 22px; }
+  .o-boutons label { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 999px; cursor: pointer; font-family: var(--font-title); font-weight: 600; color: var(--marine); }
+  .o-boutons :global(svg) { width: 18px; height: 18px; }
+  #v-pass:checked ~ .o-boutons label[for=v-pass], #v-cmd:checked ~ .o-boutons label[for=v-cmd] { background: var(--marine); color: #fff; }
+  .o-panneau { display: none; grid-template-columns: 1.1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
+  #v-pass:checked ~ .p-pass, #v-cmd:checked ~ .p-cmd { display: grid; }
+  .o-panneau > img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 24px; }
+  .o-panneau h3 { font-size: 1.9rem; margin: 0 0 8px; }
+  .o-panneau p { color: var(--muted); }
+  .tuiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 24px; }
+  .tuiles > div { border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+  .tuiles b { font-family: var(--font-title); font-size: 2rem; color: var(--marine); line-height: 1; }
+  .tuiles span { color: var(--muted); font-size: .9rem; line-height: 1.35; }
+  .tuiles strong { display: block; color: var(--ink); font-family: var(--font-title); font-size: 1.05rem; }
+  .jour { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .jour li { position: relative; border: 1px solid var(--line); border-radius: 20px; padding: 24px; }
+  .jour i { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 16px; background: var(--marine); color: #fff; margin-bottom: 16px; }
+  .jour li:first-child i { background: var(--rouge); }
+  .jour i :global(svg) { width: 26px; height: 26px; }
+  .jour .num { position: absolute; top: 20px; right: 22px; font-family: var(--font-title); font-size: 2.4rem; font-weight: 700; color: var(--line); line-height: 1; }
+  .jour h3 { font-size: 1.15rem; margin: 0 0 6px; }
+  .jour p { color: var(--muted); font-size: .94rem; margin: 0; }
+  .cadeau { display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center; }
+  .cadeau h2 { color: #fff; } .cadeau .eyebrow { color: rgba(255,255,255,.75); } .cadeau .lead { color: rgba(255,255,255,.85); }
+  .c-icone :global(svg) { width: 160px; height: 160px; color: var(--ciel); opacity: .9; }
+  .faq2 :global(.faq) { max-width: none; grid-template-columns: 1fr 1fr; align-items: start; }
+  @media (max-width: 899px) {
+    .h-grille, .o-panneau, .cadeau { grid-template-columns: 1fr; }
+    .jour { grid-template-columns: 1fr 1fr; }
+    .c-icone { display: none; }
+    .faq2 :global(.faq) { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 599px) { .jour { grid-template-columns: 1fr; } .tuiles { grid-template-columns: 1fr 1fr; } .o-boutons label { padding: 10px 14px; font-size: .92rem; } }
+</style>
