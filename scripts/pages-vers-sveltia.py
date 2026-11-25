@@ -2,7 +2,7 @@
 # Usage : python3 scripts/pages-vers-sveltia.py .pages.yml > public/admin/config.yml
 import sys, yaml
 src = yaml.safe_load(open(sys.argv[1]))
-ICONS = {'actualites':'newspaper','avions':'flight','documents':'folder_open','tarifs':'euro','pages':'web','decouvrir':'redeem','formations':'school','club':'info','historique':'history_edu','outils':'build','membre':'lock','simulateur':'calculate'}
+ICONS = {'actualites':'newspaper','avions':'flight','documents':'folder_open','tarifs':'euro','pages':'web','decouvrir':'redeem','formations':'school','club':'info','historique':'history_edu','outils':'build','membre':'lock','simulateur':'calculate','cadrage':'crop'}
 import re
 OVR = {'documents':('Documents membres','PDF, liens et vidéos de l’espace membre'),'outils':('Outils membres','Liens de préparation des vols'),'membre':('Textes espace membre','Avertissements, liens du club et parcours élève')}
 def lab(c):
@@ -69,14 +69,14 @@ for c in src['content']:
         singles.append(o)
 
 conf = {
-  'backend': {'name':'github','repo':'hugoflying/acbt_cap','branch':'main','auth_methods':['token'],
+  'backend': {'name':'github','repo':'aeroclub-beauvais-tille/acbt','branch':'main','auth_methods':['oauth','token'],'base_url':'https://acbt60.pages.dev','auth_endpoint':'api/auth',
               'commit_messages':{'create':'Ajout : {{collection}} « {{slug}} » (back-office)','update':'Modification : {{collection}} « {{slug}} » (back-office)','delete':'Suppression : {{collection}} « {{slug}} » (back-office)','uploadMedia':'Ajout du fichier {{path}} (back-office)','deleteMedia':'Suppression du fichier {{path}} (back-office)'}},
   'app_title': 'Back-office ACBT',
-  'logo': {'src': '/acbt_cap/uploads/logo/logo-acbt.png'},
-  'site_url': 'https://hugoflying.github.io/acbt_cap',
+  'logo': {'src': '../uploads/logo/logo-acbt-admin.svg'},
+  'site_url': 'https://acbt60.fr',
   'media_folder': 'public/uploads', 'public_folder': '/uploads',
   'output': {'omit_empty_optional_fields': False},
   'collections': cols, 'singletons': singles,
 }
-head = "# Back-office Sveltia CMS (essai, en parallèle de Pages CMS).\n# Fichier généré à partir de .pages.yml : garder les deux en phase.\n# Ouvrir https://hugoflying.github.io/acbt_cap/admin/\n"
+head = "# Back-office Sveltia CMS (essai, en parallèle de Pages CMS).\n# Fichier généré à partir de .pages.yml : garder les deux en phase.\n# Ouvrir https://acbt60.fr/admin/\n"
 sys.stdout.write(head + yaml.safe_dump(conf, allow_unicode=True, sort_keys=False, width=200))

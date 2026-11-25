@@ -1,0 +1,7 @@
+categorie: Documentation avion
+avions:
+- F-BIXA
+type: Fiche de pesée et centrage
+remplace: rapport-de-pesee-f-bixa
+ordre: 7
+fichier: /uploads/membre/f-bixa-fiche-de-pesee-et-centrage.pdf

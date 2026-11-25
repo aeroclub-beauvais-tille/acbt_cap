@@ -6,7 +6,7 @@
   "deroulement": [
     {
       "titre": "Vous réservez",
-      "texte": "Par téléphone ou par le formulaire de contact. Nous convenons ensemble d'une date."
+      "texte": "Par téléphone ou par le formulaire de contact. Le club vous rappelle ou vous répond par e-mail pour convenir ensemble d'une date."
     },
     {
       "titre": "Accueil au club-house",
@@ -31,6 +31,10 @@
       "reponse": "Oui, toutes nos formules existent en bon cadeau. Contactez-nous, nous vous l'envoyons et la personne choisit ensuite sa date."
     },
     {
+      "question": "Comment régler le vol ?",
+      "reponse": "Par virement (classique ou Wero), par chèque ou en espèces. La carte bancaire et les chèques ANCV ne sont pas acceptés."
+    },
+    {
       "question": "Où faut-il se présenter ?",
       "reponse": "Au club-house de l'aéroclub, dans la zone aéroplaisance de l'aéroport de Beauvais-Tillé. Le plan d'accès est sur la page Le club."
     },
@@ -38,5 +42,6 @@
       "question": "Faut-il prévoir quelque chose ?",
       "reponse": "Une tenue confortable et de quoi prendre des photos. Les enfants sont les bienvenus, accompagnés d'un adulte."
     }
-  ]
+  ],
+  "photo": "/uploads/decouvrir/bapteme-cockpit.jpg"
 }

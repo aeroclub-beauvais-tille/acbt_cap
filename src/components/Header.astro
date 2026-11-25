@@ -1,9 +1,8 @@
 ---
-import club from '../data/club.json';
 import { url } from '../lib/utils';
-import Metar from './Metar.astro';
 import Logo from './Logo.astro';
 const nav = [
+  { label: 'Accueil', href: '/' },
   { label: 'Baptême', href: '/decouvrir-le-vol' },
   { label: 'Devenir pilote', href: '/formations' },
   { label: 'La flotte', href: '/club/flotte' },
@@ -12,77 +11,96 @@ const nav = [
   { label: 'Contact', href: '/contact' },
 ];
 const path = Astro.url.pathname.replace(/\/$/, '');
+// Une rubrique = une entrée de menu. « Le club » regroupe l'histoire et les actualités.
 const actif = (href: string) =>
-  // « Le club » : sa page, l'historique et les actualités, mais pas la flotte ni les tarifs (rangés sous /club/ mais qui ont leur propre onglet).
-  href === '/club' ? path === url('/club') || [url('/club/historique'), url('/actualites')].some((p) => path === p || path.startsWith(p + '/')) : path.startsWith(url(href));
+  href === '/' ? path === url('/').replace(/\/$/, '') :
+  href === '/club' ? [url('/club/historique'), url('/actualites')].some((p) => path === p || path.startsWith(p + '/')) || path === url('/club') : path.startsWith(url(href));
 const membre = path.startsWith(url('/membre'));
+// Page Baptême : son bandeau porte déjà le bouton Réserver, pas de doublon en haut
+const sansReserver = membre || path === url('/decouvrir-le-vol').replace(/\/$/, '');
 ---
-<header class="site-header">
-  <div class="bandeau"><div class="container b-in"><Metar sombre bandeau /><a class="b-tel" href={`tel:${club.telephone.replace(/\s/g, '')}`}>{club.telephone}</a></div></div>
-  <div class="container bar">
+<header class:list={['site-header', { membre }]}>
+  <div class="bar">
     <a class="logo" href={url('/')} aria-label="ACBT — Aéroclub de Beauvais-Tillé, accueil">
       <Logo class="logo-mark" />
     </a>
     <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Ouvrir le menu" />
     <nav aria-label="Navigation principale">
       <ul>
-        {nav.map((n) => <li><a href={url(n.href)} aria-current={actif(n.href) ? 'page' : undefined}>{n.label}</a></li>)}
+        {nav.map((n, i) => (
+          <li>
+            <a href={url(n.href)} aria-current={actif(n.href) ? 'page' : undefined}>{n.label}</a>
+          </li>
+        ))}
         <li class="li-membre"><a class="member" href={url('/membre')}>Espace membre</a></li>
       </ul>
+      <p class="nav-pied">03 44 48 28 52 · Aéroport de Beauvais-Tillé</p>
     </nav>
     {Astro.slots.has('actions') && <div class="actions"><slot name="actions" /></div>}
-    {!membre && <a class="reserver" href={url('/contact?objet=Baptême')}>Réserver<span>&nbsp;un vol</span></a>}
-    <label for="nav-toggle" class="burger" aria-hidden="true"><span></span></label>
+    {!sansReserver && <a class="reserver" href={url('/contact?objet=Baptême')}>Réserver<span>&nbsp;un baptême</span></a>}
+    <label for="nav-toggle" class="burger"><span class="b-ouvrir">Menu</span><span class="b-fermer">Fermer</span></label>
   </div>
   <div class="progression" aria-hidden="true"></div>
 </header>
+<script is:inline>
+  // Fond clair dès qu'on quitte le haut de la page, même sans le moteur d'animations
+  (() => { const h = document.currentScript.previousElementSibling; const f = () => h.classList.toggle('defile', scrollY > 20); addEventListener('scroll', f, { passive: true }); f(); })();
+</script>
 <style>
-  .site-header { position: sticky; top: 0; z-index: 50; background: var(--white); border-bottom: 1px solid var(--line); transition: transform .4s cubic-bezier(.2,.7,.2,1); }
-  /* L'en-tête reste toujours visible : le bandeau METAR est fixe en haut. */
-  .site-header.cache { transform: none; }
-  .progression { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--sun); transform: scaleX(0); transform-origin: left; pointer-events: none; }
-  .bandeau { background: var(--nuit); color: #c9d2e3; font-size: .8rem; overflow: hidden; }
-  .b-in { display: flex; justify-content: space-between; align-items: center; height: 32px; gap: 16px; }
-  .bandeau a { color: #fff; font-weight: 600; text-decoration: none; }
-  .bar { display: flex; align-items: center; gap: 8px; height: 72px; }
-  .logo { display: flex; align-items: center; text-decoration: none; margin-right: auto; color: var(--ink); --logo-h: 40px; --logo-rouge: #EC091D; }
-  nav { align-self: stretch; }
-  nav ul { display: flex; height: 100%; list-style: none; margin: 0; padding: 0; }
-  nav li { display: flex; }
-  nav a { display: flex; align-items: center; padding: 0 16px; color: var(--text); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; box-shadow: inset 0 -3px 0 transparent; transition: box-shadow .2s; }
-  nav a:hover { color: var(--ink); box-shadow: inset 0 -3px 0 var(--line); }
-  nav a[aria-current] { color: var(--ink); font-weight: 600; box-shadow: inset 0 -3px 0 var(--sun); }
-  nav a.member { margin: 14px 0 14px 10px; padding: 0 16px; box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--ink); font-weight: 600; font-size: .9rem; }
-  nav a.member:hover { background: var(--ink); color: #fff; }
+  /* En-tête posé sur la page ; transparent et en blanc quand la page commence par une grande photo */
+  .site-header { --fg: var(--ink); position: fixed; top: 0; left: 0; right: 0; z-index: 50; color: var(--fg); transition: transform .5s cubic-bezier(.2,.7,.2,1), background-color .35s, color .35s, border-color .35s; border-bottom: 1px solid transparent; }
+  :global(body:has(main > .hero:first-child, main > .page-head.has-img:first-child)) .site-header:not(.defile) { --fg: #fff; }
+  :global(body:has(main > .hero:first-child, main > .page-head.has-img:first-child)) .site-header:not(.defile) .logo { --logo-rouge: currentColor; filter: drop-shadow(0 2px 12px rgba(0,0,0,.45)); }
+  .site-header.defile { background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: saturate(1.3) blur(14px); border-bottom-color: var(--line); }
+  .site-header.cache { transform: translateY(-100%); }
+  .site-header.membre { position: sticky; background: var(--paper); border-bottom-color: var(--line); }
+  :global(main:not(:has(> .hero:first-child, > .page-head:first-child))) { padding-top: 84px; }
+  :global(body:has(.site-header.membre) main) { padding-top: 0; }
+  .progression { position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--accent); transform: scaleX(0); transform-origin: left; pointer-events: none; }
+  .bar { display: flex; align-items: center; gap: 10px; height: 84px; padding: 0 clamp(20px, 4vw, 56px); }
+  .logo { display: flex; align-items: center; text-decoration: none; color: var(--fg); margin-right: auto; --logo-h: 60px; --logo-rouge: #EC091D; }
+  nav ul { display: flex; align-items: center; gap: 2px; list-style: none; margin: 0; padding: 0; }
+  nav a { position: relative; display: block; padding: 8px 14px; color: var(--fg); text-decoration: none; font-family: var(--font-title); font-size: 1.04rem; font-weight: 500; white-space: nowrap; opacity: 1; }
+  nav a::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 0; height: 3px; border-radius: 2px; background: var(--sun) !important; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+  nav a:hover { color: var(--fg); opacity: 1; }
+  nav a:hover::after, nav a[aria-current]::after { transform: scaleX(1); }
+  nav a.member { opacity: .7; font-size: .88rem; }
+  .nav-pied { display: none; }
   .nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
-  .reserver { margin-left: 8px; display: inline-flex; align-items: center; height: 44px; padding: 0 18px; background: var(--sun); color: #fff; font-family: var(--font-title); font-stretch: 90%; font-weight: 700; font-size: .95rem; text-decoration: none; white-space: nowrap; transition: background-color .2s; }
-  .reserver:hover { background: var(--ink); color: #fff; }
-  .reserver:focus-visible, nav a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
-  .actions { display: flex; align-items: center; margin-left: 8px; }
-  .burger { display: none; width: 44px; height: 44px; background: var(--paper-2); align-items: center; justify-content: center; cursor: pointer; position: relative; z-index: 2; }
-  .burger span, .burger span::before, .burger span::after { display: block; width: 18px; height: 2px; background: var(--ink); transition: transform .25s, background-color .2s; }
-  .burger span { position: relative; }
-  .burger span::before, .burger span::after { content: ''; position: absolute; left: 0; }
-  .burger span::before { top: -6px; } .burger span::after { top: 6px; }
-  @media (max-width: 1180px) { .reserver span { display: none; } nav a { padding: 0 11px; } }
-  @media (max-width: 980px) {
-    .burger { display: inline-flex; margin-left: 6px; }
-    .b-tel { display: none; }
-    nav { position: fixed; inset: 0; z-index: 1; background: var(--nuit); display: none; padding: 120px 20px 40px; overflow-y: auto; }
-    nav ul { flex-direction: column; height: auto; }
-    nav a { color: #fff; font-family: var(--font-title); font-stretch: 82%; font-weight: 750; font-size: clamp(1.9rem, 8vw, 2.6rem); padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.12); box-shadow: none !important; }
-    nav a:hover { color: #fff; }
-    nav a[aria-current] { color: var(--sun-clair); }
-    nav a.member { margin: 24px 0 0; font-size: 1.05rem; font-family: var(--font-body); font-weight: 600; color: var(--sun-clair); border: 0; }
-    nav a.member:hover { background: none; color: var(--sun-clair); }
-    .nav-toggle:checked ~ nav { display: block; animation: menu-in .3s ease-out; }
-    .nav-toggle:checked ~ .burger { background: var(--sun); }
-    .nav-toggle:checked ~ .burger span { background: transparent; }
-    .nav-toggle:checked ~ .burger span::before { transform: translateY(6px) rotate(45deg); background: #fff; }
-    .nav-toggle:checked ~ .burger span::after { transform: translateY(-6px) rotate(-45deg); background: #fff; }
-    .nav-toggle:focus-visible ~ .burger { outline: 3px solid var(--sun); outline-offset: 2px; }
+  .reserver { margin-left: 12px; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 999px; background: var(--sun); color: var(--ink); font-family: var(--font-title); font-weight: 600; font-size: .98rem; text-decoration: none; white-space: nowrap; transition: background-color .25s, color .25s; }
+    .reserver:hover { background: #ffc933; color: var(--ink) !important; }
+  .burger { display: none; align-items: center; height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--fg) 50%, transparent); font-family: var(--font-title); font-size: .92rem; cursor: pointer; position: relative; z-index: 2; }
+  .b-fermer { display: none; }
+  .nav-toggle:focus-visible ~ .burger, .reserver:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .actions { display: flex; align-items: center; }
+  @media (max-width: 1240px) { .reserver span { display: none; } nav a { padding: 8px 10px; } }
+  @media (max-width: 1020px) {
+    .burger { display: inline-flex; }
+    .reserver { margin-left: 0; }
+    /* Menu ouvert : plein écran, grands titres fins */
+    nav { position: fixed; inset: 0; z-index: 1; background: var(--nuit); display: none; flex-direction: column; justify-content: center; padding: 88px clamp(20px, 6vw, 56px) 28px; overflow-y: auto; }
+    nav ul { flex-direction: column; align-items: stretch; gap: 0; }
+    nav li { border-bottom: 1px solid rgba(255,255,255,.12); }
+    nav li.li-membre { border: 0; }
+    nav a { display: flex; align-items: baseline; gap: 16px; color: #eef3fb; font-weight: 500; font-size: clamp(1.7rem, 7.5vw, 2.4rem); letter-spacing: -.02em; padding: 9px 0; opacity: 1; }
+    nav a::after { display: none; }
+    nav a[aria-current] { color: #86b4e6; }
+    nav a::after { left: 0; right: auto; width: 40px; bottom: 10px; }
+    nav a:hover { color: #eef3fb; }
+    .li-membre { margin-top: 18px; }
+    nav a.member { font-size: 1rem; letter-spacing: 0; color: #8ea3c0; }
+    .nav-pied { display: block; margin: 30px 0 0; color: #8ea3c0; font-size: .9rem; }
+    .nav-toggle:checked ~ nav { display: flex; animation: menu-in .35s cubic-bezier(.2,.7,.2,1); }
+    .nav-toggle:checked ~ .burger { --fg: #eef3fb; color: #eef3fb; }
+    .nav-toggle:checked ~ .burger .b-ouvrir { display: none; }
+    .nav-toggle:checked ~ .burger .b-fermer { display: inline; }
+    .nav-toggle:checked ~ .reserver { visibility: hidden; }
+    .site-header:has(.nav-toggle:checked) { background: transparent; border-color: transparent; backdrop-filter: none; }
+    .site-header:has(.nav-toggle:checked) .logo { color: #eef3fb; position: relative; z-index: 2; }
+    .site-header:has(.nav-toggle:checked) .logo { --logo-rouge: currentColor; }
   }
-  @media (max-width: 440px) { .logo { --logo-h: 36px; } .bar { height: 64px; } }
-  @keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
-  @media (prefers-reduced-motion: reduce) { .nav-toggle:checked ~ nav { animation: none; } }
+  @media (max-width: 1020px) { .logo { --logo-h: 50px; } .bar { height: 74px; } }
+  @media (max-width: 420px) { .logo { --logo-h: 44px; } .bar { height: 68px; } }
+  @keyframes menu-in { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { nav a::after { transition: none; } .nav-toggle:checked ~ nav { animation: none; } }
 </style>

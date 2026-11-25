@@ -1,12 +1,15 @@
 # Site de l'Aéroclub de Beauvais-Tillé (ACBT)
 
-Maquette du nouveau site, qui regroupe l'ancien site (acbt60.free.fr) et le site Wix.
-En ligne sur **https://hugoflying.github.io/acbt_cap/** une fois GitHub Pages activé.
+Site du club, en ligne sur **https://acbt60.fr** (projet Cloudflare Pages « acbt60 »).
+Il contient la vitrine, l'espace membre (/membre, avec Perfs), le tableau de bord TV (/dashboard),
+le back-office (/admin) et les fonctions serveur (dossier `functions/`).
+Publication : `.github/workflows/cloudflare.yml` (à chaque modification, chaque nuit, et quand Perfs change).
+Les secrets et la base D1 sont réglés dans Cloudflare, pas dans le dépôt.
 
 ## Mettre à jour le site sans rien installer (back-office)
 
 1. Aller sur **https://app.pagescms.org** et se connecter avec son compte GitHub
-   (le compte doit avoir accès au dépôt `hugoflying/acbt`).
+   (le compte doit avoir accès au dépôt `aeroclub-beauvais-tille/acbt`).
 2. Choisir le dépôt `acbt`, branche `main`.
 3. Le menu de gauche donne accès à :
    - **Actualités** : ajouter un article, ses photos, le dépublier.

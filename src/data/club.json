@@ -6,9 +6,10 @@
   "adresse": "Aéroport de Beauvais-Tillé, zone aéroplaisance, 60000 Tillé",
   "telephone": "03 44 48 28 52",
   "email": "acbt60@gmail.com",
+  "formulaire_cle": "d8b0ad12-240e-4f3d-b991-2f01a6e8c58a",
   "facebook": "https://www.facebook.com/ACBT60",
   "aerogest": "https://online.aerogest.fr/connection/Logon",
-  "horaires": "Ouvert le week-end et sur rendez-vous en semaine (à confirmer)",
+  "horaires": "Pas d'horaires fixes : appelez ou écrivez-nous avant de passer.",
   "acces": [
     "Direction P4 (3e rond-point depuis Beauvais)",
     "Premier aéroclub sur la gauche après le portail coulissant vert"
@@ -49,11 +50,12 @@
   ],
   "legal": {
     "statut": "Association loi 1901",
+    "denomination": "Aéro-Club de Beauvais Tillé Avion Passion (ACBT)",
     "rna": "",
-    "siret": "",
-    "directeur_publication": "",
-    "hebergeur_nom": "GitHub Pages (GitHub Inc.)",
-    "hebergeur_adresse": "88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis",
+    "siret": "318 021 508 00011",
+    "directeur_publication": "le président de l'association",
+    "hebergeur_nom": "Cloudflare Pages (Cloudflare, Inc.)",
+    "hebergeur_adresse": "101 Townsend Street, San Francisco, CA 94107, États-Unis",
     "credits_photos": "Les photos appartiennent à l'aéroclub et à ses membres."
   }
 }

@@ -1,8 +1,10 @@
 import { defineConfig } from 'astro/config';
 
-// Maquette sur GitHub Pages : https://hugoflying.github.io/acbt_cap/
-// Sur Cloudflare Pages avec un domaine propre, mettre SITE_URL et BASE_PATH=/ dans l'environnement de build.
-const base = process.env.BASE_PATH ?? '/acbt_cap';
+// En ligne sur Cloudflare Pages (projet « acbt60 », https://acbt60.fr) : le site est à la racine.
+// Publié par .github/workflows/cloudflare.yml (build avec CF_PAGES=1, puis envoi par Wrangler).
+// SITE_URL et BASE_PATH, dans l'environnement de build, remplacent ces valeurs.
+const cloudflare = !!process.env.CF_PAGES;
+const base = process.env.BASE_PATH ?? (cloudflare ? '/' : '/acbt_cap');
 
 /** Préfixe le sous-dossier de déploiement aux liens et images « /uploads/... » écrits dans le texte des actualités. */
 function rehypeBase() {
@@ -22,7 +24,7 @@ function rehypeBase() {
 }
 
 export default defineConfig({
-  site: process.env.SITE_URL ?? 'https://hugoflying.github.io',
+  site: process.env.SITE_URL ?? (cloudflare ? 'https://acbt60.fr' : 'https://aeroclub-beauvais-tille.github.io'),
   base,
   trailingSlash: 'ignore',
   markdown: { rehypePlugins: [rehypeBase] },

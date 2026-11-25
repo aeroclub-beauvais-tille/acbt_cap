@@ -8,6 +8,7 @@
  *   data-count="1979"    nombre qui compte jusqu'à sa valeur (data-from="1930" pour le départ)
  *   data-parallax="12"   image qui glisse plus lentement que la page (amplitude en %)
  *   data-clip            image dévoilée par un rideau
+ *   data-glisse          grand texte en filigrane qui glisse pendant le défilement (immatriculations de la flotte)
  *   data-marquee         bandeau de texte qui défile, accéléré par la vitesse du scroll
  *   data-batch           longue liste (actualités, galeries) : les éléments apparaissent par vagues à mesure qu'on descend
  *
@@ -165,9 +166,18 @@ function images() {
   document.querySelectorAll<HTMLElement>('[data-clip]').forEach((el) => {
     gsap.fromTo(
       el,
-      { clipPath: 'inset(100% 0% 0% 0% round 0px)' },
-      { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 1.6, ease: 'expo.inOut', scrollTrigger: { trigger: el, start: 'top 85%', once: true } },
+      { clipPath: 'inset(100% 0% 0% 0% round 20px)' },
+      { clipPath: 'inset(0% 0% 0% 0% round 20px)', duration: 1.6, ease: 'expo.inOut', scrollTrigger: { trigger: el, start: 'top 85%', once: true } },
     );
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-glisse]').forEach((el) => {
+    // Grand texte en filigrane (immatriculations de la flotte) qui glisse pendant le défilement ; sens donné par data-glisse
+    const sens = Number(el.dataset.glisse) || -1;
+    gsap.fromTo(el, { x: 0 }, {
+      x: () => sens * innerWidth * 0.1, ease: 'none',
+      scrollTrigger: { trigger: el.parentElement, start: 'top 70%', end: 'bottom top', scrub: 0.6, invalidateOnRefresh: true },
+    });
   });
 
   mm.add('(min-width: 701px)', () => {

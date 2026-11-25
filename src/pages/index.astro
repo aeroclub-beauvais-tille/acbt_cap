@@ -5,24 +5,29 @@ import { getCollection } from 'astro:content';
 import club from '../data/club.json';
 import pages from '../data/pages.json';
 import t from '../data/tarifs.json';
-import { url, asset, dateFr } from '../lib/utils';
+import f from '../data/formations.json';
+import { url, asset } from '../lib/utils';
 
 const avions = (await getCollection('avions', (a) => a.data.actif)).sort((a, b) => a.data.ordre - b.data.ordre);
 const annees = new Date().getFullYear() - 1979;
 const pg = pages.accueil;
-const hero = pg.diaporama[0];
-const nf = (x: number) => x.toLocaleString('fr-FR');
-const des = Math.min(...t.formules.flatMap((x) => x.prix.map((p) => p.prix)));
-// L'accueil est un sommaire : une case par rubrique, qui renvoie vers sa page.
-// Le détail (prix, simulateur, fiches avions) ne figure que sur la page concernée.
-const rubriques = [
-  { titre: "Baptême de l'air", texte: pg.bapteme.texte, fait: `Dès ${nf(des)} €`, href: '/decouvrir-le-vol', image: pg.bapteme.image },
-  { titre: 'Devenir pilote', texte: pg.formation.texte, fait: 'Votre budget en une minute', href: '/formations', image: pg.formation.image },
-  { titre: 'La flotte', texte: pages.flotte.texte, fait: `${avions.length} avions`, href: '/club/flotte', image: pages.flotte.image },
-  { titre: 'Le club', texte: pages.club.texte.replace('{fondation}', club.fondation), fait: 'Depuis 1979', href: '/club', image: pages.club.image },
+const videosMobile: string[] = ((pg as any).videos_mobile || []).filter(Boolean);
+const slides = pg.diaporama.map((d) => ({ img: d.image, legende: d.legende }));
+// Les trois choix sous la photo : textes et photos modifiables dans le back-office (Pages du site > Accueil).
+const des = Math.min(...t.formules.flatMap((f) => f.prix.map((p) => p.prix)));
+const cibles = [
+  { id: 'decouvrir', href: '/decouvrir-le-vol', badge: `dès ${des.toLocaleString('fr-FR')} €`, action: 'Voir les prix' },
+  { id: 'apprendre', href: '/formations', badge: 'BIA · LAPL · PPL', action: 'Le parcours' },
+  { id: 'voler', href: '/club/flotte', badge: '', action: 'Voir les avions' },
 ];
-const actus = (await getCollection('actualites', (a) => a.data.publie)).sort((a, b) => b.data.date.getTime() - a.data.date.getTime()).slice(0, 4);
-const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M2 9h13M10 4l5 5-5 5"/></svg>';
+// Pictos des chiffres du club (instructeurs, création, avions), au trait comme le reste du site
+const pictos = [
+  '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>',
+  '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+];
+const clubHouse = '/uploads/historique/2012-locaux-01.jpg';
+const choix = pg.cartes.slice(0, 3).map((c, i) => ({ ...cibles[i], titre: c.titre, texte: c.texte, image: c.image }));
 ---
 <Base title="Accueil">
   <script slot="head" type="application/ld+json" set:html={JSON.stringify({
@@ -32,37 +37,42 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
     address: { '@type': 'PostalAddress', streetAddress: 'Aéroport de Beauvais-Tillé, zone aéroplaisance', postalCode: '60000', addressLocality: 'Tillé', addressCountry: 'FR' },
     geo: { '@type': 'GeoCoordinates', latitude: club.latitude, longitude: club.longitude },
   })} />
-
-  <section class="hero" aria-label="Présentation">
-    <div class="h-img"><img {...photo(hero?.image, '100vw')} fetchpriority="high" alt={hero?.legende ?? ''} />
-      {pg.video && (
-        <video class="h-video" autoplay muted loop playsinline preload="metadata" poster={photoUrl(hero?.image)} aria-hidden="true">
-          <source src={asset(pg.video)} type="video/mp4" />
-        </video>
-      )}</div>
-    <div class="h-panneau" data-reveal>
-      <div class="label">LFOB · Beauvais-Tillé · Depuis 1979</div>
-      <h1 data-split="now">{pg.titre}.</h1>
-      <p>{pg.texte.replace('{annees}', String(annees))}</p>
-      <div class="h-btns">
-        <a class="btn btn-primary" href={url('/contact?objet=Baptême')}>Réserver un baptême</a>
-        <a class="btn btn-nuit" href={url('/formations')}>Devenir pilote</a>
+  <section class:list={["hero", { "a-video": videosMobile.length > 0 }]} aria-label="Présentation">
+    <div class="slides">
+      {slides.map((s, i) => <img {...photo(s.img, '100vw')} fetchpriority={i ? undefined : 'high'} alt={s.legende} class:list={{ on: i === 0 }} loading={i ? 'lazy' : 'eager'} />)}
+      {videosMobile.map((v, i) => (
+        <video class:list={['h-video-mobile', { on: i === 0 }]} muted playsinline loop={videosMobile.length === 1} preload="none" poster={asset(v.replace(/\.mp4$/i, '.jpg'))} aria-hidden="true" data-src={asset(v)}></video>
+      ))}
+    </div>
+    <div class="voile"></div>
+    <svg class="vol" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <mask id="trace-mask" maskUnits="userSpaceOnUse"><path id="trace-plein" d="M -60 560 C 220 560, 430 470, 580 330 S 840 70, 1100 30" fill="none" stroke="#fff" stroke-width="6" /></mask>
+      </defs>
+      <path class="trace" d="M -60 560 C 220 560, 430 470, 580 330 S 840 70, 1100 30" mask="url(#trace-mask)" />
+      <g class="avion-svg"><path transform="scale(1.4)" d="M16,0 C16,-1.6 13,-2.4 10,-2.4 L4,-2.4 L2,-19 L-3,-19 L-3,-2.4 L-14,-2 L-17,-8 L-20,-8 L-19,-1.6 L-19,1.6 L-20,8 L-17,8 L-14,2 L-3,2.4 L-3,19 L2,19 L4,2.4 L10,2.4 C13,2.4 16,1.6 16,0 Z" /></g>
+    </svg>
+    <div class="container hero-inner">
+      <div class="texte">
+        <span class="eyebrow" data-reveal data-delay="0.1">Aéroport de Beauvais-Tillé</span>
+        <h1 data-split="now">{pg.titre}</h1>
+        <p class="lead" data-reveal data-delay="0.8">{pg.texte.replace('{annees}', String(annees))}</p>
       </div>
     </div>
   </section>
 
-  <section class="plan" aria-label="Sommaire du site">
+  <section class="choix-section" aria-label="Que voulez-vous faire ?">
     <div class="container">
-      <div class="label">Au sommaire</div>
-      <div class="cases" data-stagger>
-        {rubriques.map((r, i) => (
-          <a class="case" href={url(r.href)}>
-            <div class="c-photo"><img {...photo(r.image, '(min-width: 900px) 25vw, 100vw')} alt="" loading="lazy" /></div>
-            <div class="c-corps">
-              <span class="c-fait">{r.fait}</span>
-              <h2>{r.titre}</h2>
-              <p>{r.texte}</p>
-              <span class="c-lien">Voir la page <i set:html={fleche} /></span>
+      <h2 class="question">Que voulez-vous faire ?</h2>
+      <div class="choix" data-stagger>
+        {choix.map((c, i) => (
+          <a class:list={['choix-carte', `c-${c.id}`, { secondaire: i === 2 }]} href={url(c.href)}>
+            <img {...photo(c.image, '(min-width: 900px) 20vw, 35vw')} alt="" loading={i < 2 ? 'eager' : 'lazy'} />
+            <div class="choix-texte">
+              {c.badge && <span class="badge">{c.badge}</span>}
+              <h3>{c.titre}</h3>
+              <p>{c.texte}</p>
+              <span class="action">{c.action} <span aria-hidden="true">→</span></span>
             </div>
           </a>
         ))}
@@ -70,16 +80,54 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
     </div>
   </section>
 
-  <section class="section dark">
-    <div class="container">
-      <div class="label">Le club</div>
-      <h2 data-split class="c-titre">{pg.atouts_titre}.</h2>
-      <div class="chiffres" data-stagger>
-        {pg.atouts.map((a) => {
+  <section class="section white vedette">
+    <div class="container duo">
+      <div class="duo-img" data-reveal="left"><img {...photo(pg.bapteme.image, '(min-width: 900px) 45vw, 100vw')} alt="" loading="lazy" /></div>
+      <div class="duo-txt">
+        <span class="eyebrow">Baptême de l'air</span>
+        <h2 data-split>{pg.bapteme.titre}</h2>
+        <p class="lead" data-reveal>{pg.bapteme.texte}</p>
+        <ul class="formules" data-stagger>
+          {t.formules.map((x) => (
+            <li><span><b>{x.titre}</b><small>{x.texte}</small></span><strong>{x.prix.length > 1 && <i>dès</i>}{Math.min(...x.prix.map((p) => p.prix)).toLocaleString('fr-FR')} €</strong></li>
+          ))}
+        </ul>
+        <div class="btns">
+          <a class="btn btn-jaune" href={url('/contact?objet=Baptême')}>Réserver un baptême</a>
+          <a class="btn btn-outline" href={url('/contact?objet=Bon cadeau')}>Offrir un baptême</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark vedette pilote">
+    <div class="container duo inverse">
+      <div class="duo-img" data-reveal="right"><img {...photo(pg.formation.image, '(min-width: 900px) 45vw, 100vw')} alt="" loading="lazy" /></div>
+      <div class="duo-txt">
+        <span class="eyebrow">Formation de pilote</span>
+        <h2 data-split>{pg.formation.titre}</h2>
+        <p class="lead" data-reveal>{pg.formation.texte}</p>
+        <ol class="parcours" data-stagger>
+          {f.parcours.slice(0, 4).map((e, i) => <li><span>{String(i + 1).padStart(2, '0')}</span>{e.titre}</li>)}
+        </ol>
+        <div class="btns">
+          <a class="btn btn-primary" href={url('/formations')}>Comment ça se passe</a>
+          <a class="btn btn-outline" href={url('/club/tarifs')}>Voir les tarifs</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section confiance">
+    <div class="container conf-in">
+      <h2 data-split>{pg.atouts_titre}</h2>
+      <div class="points" data-stagger>
+        {pg.atouts.map((a, i) => {
           const v = a.chiffre.replace('{avions}', String(avions.length));
           const m = v.match(/^(\d+)\s*(%?)$/);
           return (
             <div>
+              <svg class="picto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={pictos[i % 3]} />
               <strong {...(m ? { 'data-count': m[1], 'data-suffix': m[2] ? ' %' : undefined, 'data-from': +m[1] > 1000 ? String(+m[1] - 80) : undefined } : {})}>{v}</strong>
               <span>{a.texte}{a.lien && <> <a href={url(a.lien)}>{a.lien_texte || 'En savoir plus'}</a></>}</span>
             </div>
@@ -89,112 +137,227 @@ const fleche = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strok
     </div>
   </section>
 
-  <section class="section journal">
-    <div class="container">
-      <div class="tete">
-        <div><div class="label">La vie du club</div><h2 data-split>Dernières nouvelles.</h2></div>
-        <a class="btn btn-outline" href={url('/actualites')}>Toutes les actualités</a>
+  <section class="section">
+    <div class="container contact-band">
+      <div class="cb-txt">
+        <span class="label">Nous trouver</span>
+        <h2 data-split>Passez nous voir au club</h2>
+        <p class="lead" data-reveal>Zone aéroplaisance de l'aéroport de Beauvais-Tillé. Adresse, plan d'accès et itinéraire : tout est dans les infos pratiques.</p>
+        <div class="btns" data-stagger>
+          <a class="btn btn-primary" href={url('/club#infos')}>Venir au club</a>
+          <a class="btn btn-outline" href={`tel:${club.telephone.replace(/\s/g, '')}`}>{club.telephone}</a>
+        </div>
       </div>
-      <ol class="j-liste" data-stagger>
-        {actus.map((a) => (
-          <li><a href={url(`/actualites/${a.id}`)}><span class="j-date">{dateFr(a.data.date, { day: 'numeric', month: 'long', year: 'numeric' })}</span><span class="j-titre">{a.data.titre}</span><i set:html={fleche} /></a></li>
-        ))}
-      </ol>
-    </div>
-  </section>
-
-  <section class="venir">
-    <div class="container v-in">
-      <div><div class="label">Aéroport de Beauvais-Tillé</div><h2 data-split>On vous attend au club.</h2><p>{club.adresse}</p></div>
-      <div class="btns">
-        <a class="btn btn-primary" href={url('/contact?objet=Baptême')}>Réserver un baptême</a>
-        <a class="btn btn-outline" href={url('/contact')}>Nous contacter</a>
-      </div>
+      <figure class="cb-photo" data-reveal="right"><img {...photo(clubHouse, '(min-width: 900px) 50vw, 100vw')} alt="Le club-house de l'ACBT, zone aéroplaisance" loading="lazy" /><figcaption>Le club-house, zone aéroplaisance</figcaption></figure>
     </div>
   </section>
 </Base>
 
-
+<script>
+  // Vidéos réservées au téléphone, enchaînées l'une après l'autre ; l'ordinateur garde les photos.
+  const vms = [...document.querySelectorAll<HTMLVideoElement>('.h-video-mobile')];
+  if (vms.length && matchMedia('(max-width: 700px)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const charger = (v: HTMLVideoElement) => { if (!v.src) { v.src = v.dataset.src || ''; v.preload = 'auto'; } };
+    const lancer = (i: number) => {
+      const v = vms[i];
+      charger(v); v.currentTime = 0; v.play().catch(() => {});
+      vms.forEach((x, j) => x.classList.toggle('on', j === i));
+      if (vms.length > 1) charger(vms[(i + 1) % vms.length]);
+    };
+    if (vms.length > 1) vms.forEach((v, i) => v.addEventListener('ended', () => lancer((i + 1) % vms.length)));
+    lancer(0);
+  }
+</script>
 
 <script>
-  // Vidéo de fond : coupée si le visiteur a demandé moins d'animations
-  const v = document.querySelector<HTMLVideoElement>('.h-video');
-  if (v && matchMedia('(prefers-reduced-motion: reduce)').matches) { v.removeAttribute('autoplay'); v.pause(); }
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
+
+  // Avion qui traverse le ciel du hero en laissant une trace pointillée, puis la parallaxe au défilement.
+  if (document.documentElement.classList.contains('motion')) {
+    gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+    const mm = gsap.matchMedia();
+    mm.add('(min-width: 701px)', () => {
+      const plein = document.getElementById('trace-plein') as unknown as SVGPathElement;
+      const longueur = plein.getTotalLength();
+      gsap.set(plein, { strokeDasharray: longueur, strokeDashoffset: longueur });
+      gsap.set('.vol', { autoAlpha: 1 });
+      gsap.timeline({ delay: 1.2, repeat: -1, repeatDelay: 7 })
+        .set('.trace', { opacity: 1 })
+        .set(plein, { strokeDashoffset: longueur })
+        .to('.avion-svg', { duration: 7, ease: 'power1.inOut', motionPath: { path: '#trace-plein', align: '#trace-plein', alignOrigin: [0.5, 0.5], autoRotate: true } }, 0)
+        .to(plein, { strokeDashoffset: 0, duration: 7, ease: 'power1.inOut' }, 0)
+        .to('.trace', { opacity: 0, duration: 2, ease: 'power2.in' }, 7.5);
+
+      const scroll = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true };
+      gsap.to('.slides', { yPercent: 18, ease: 'none', scrollTrigger: scroll });
+      gsap.to('.vol', { yPercent: 30, ease: 'none', scrollTrigger: scroll });
+      gsap.to('.hero .texte', { y: -90, opacity: 0.15, ease: 'none', scrollTrigger: scroll });
+    });
+  }
+
+  const imgs = [...document.querySelectorAll<HTMLImageElement>('.slides img')];
+  const n = document.getElementById('slide-n');
+  const l = document.getElementById('slide-l');
+  let i = 0;
+  if (imgs.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setInterval(() => {
+      imgs[i].classList.remove('on');
+      i = (i + 1) % imgs.length;
+      imgs[i].loading = 'eager';
+      imgs[i].classList.add('on');
+      if (n) n.textContent = String(i + 1).padStart(2, '0');
+      if (l) l.textContent = imgs[i].alt;
+    }, 6000);
+  }
 </script>
 
 <style>
-  /* Ouverture : photo, panneau blanc qui chevauche */
-  .hero { position: relative; background: var(--nuit); }
-  .h-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-  .h-img { position: relative; }
-  .h-img { height: clamp(440px, 56vw, 720px); overflow: hidden; }
-  .h-img img { width: 100%; height: 100%; object-fit: cover; object-position: 40% 60%; }
-  .h-chiffre { position: absolute; right: clamp(16px, 4vw, 64px); bottom: 28px; color: #fff; text-align: right; font-family: var(--font-title); font-stretch: 80%; text-shadow: 0 2px 20px rgba(10,26,58,.35); }
-  .h-chiffre strong { display: block; font-size: clamp(56px, 7vw, 110px); font-weight: 800; line-height: .9; }
-  .h-chiffre span { font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; }
-  .h-panneau { position: absolute; left: max(clamp(16px, 4vw, 64px), (100% - var(--max)) / 2 + clamp(16px, 4vw, 64px)); bottom: clamp(-60px, -4vw, -30px); width: min(640px, 100% - 2 * clamp(16px, 4vw, 64px)); background: var(--white); padding: clamp(28px, 3.4vw, 48px); box-shadow: 0 30px 60px -30px rgba(10,26,58,.35); }
-  .h-panneau h1 { font-size: clamp(2.6rem, 5.2vw, 4.8rem); margin: 6px 0 18px; }
-  .h-panneau p { color: var(--muted); font-size: 1.08rem; max-width: 46ch; margin-bottom: 26px; }
-  .h-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-  /* Sommaire : quatre cases, photo numérotée, trait bleu au survol */
-  .plan { padding: clamp(110px, 9vw, 140px) 0 clamp(56px, 7vw, 96px); }
-  .cases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .case { position: relative; display: flex; flex-direction: column; background: var(--paper-2); color: inherit; text-decoration: none; overflow: hidden; }
-  .case::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--sun); transform: scaleX(0); transform-origin: left; transition: transform .35s; }
-  .case:hover::after { transform: scaleX(1); }
-  .c-photo { position: relative; aspect-ratio: 4 / 3; overflow: hidden; }
-  .c-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
-  .case:hover .c-photo img { transform: scale(1.05); }
-  .c-corps { display: flex; flex-direction: column; flex: 1; padding: 20px 22px 24px; }
-  .c-fait { font-family: var(--font-title); font-stretch: 90%; font-size: .74rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-  .case h2 { font-size: clamp(1.6rem, 2.2vw, 2.1rem); margin: 8px 0 10px; }
-  .c-corps p { color: var(--muted); font-size: .95rem; margin: 0 0 18px; }
-  .c-lien { margin-top: auto; display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-title); font-stretch: 90%; font-weight: 700; color: var(--ink); }
-  .c-lien :global(svg), .j-liste :global(svg) { width: 15px; height: 15px; transition: transform .2s; }
-  .case:hover .c-lien :global(svg) { transform: translateX(4px); }
-  .case:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
-
-  /* Dernières nouvelles */
-  .j-liste { list-style: none; margin: 0; padding: 0; border-top: 3px solid var(--ink); }
-  .j-liste a { display: grid; grid-template-columns: 13em 1fr auto; gap: 24px; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
-  .j-date { font-family: var(--font-title); font-stretch: 90%; font-size: .76rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-  .j-titre { font-family: var(--font-title); font-stretch: 85%; font-weight: 700; font-size: clamp(1.1rem, 1.8vw, 1.45rem); color: var(--ink); }
-  .j-liste a:hover .j-titre { text-decoration: underline; text-decoration-color: var(--sun); text-decoration-thickness: 3px; text-underline-offset: 5px; }
-  .j-liste a:hover :global(svg) { transform: translateX(4px); }
-
-  /* Fin de page */
-  .venir { background: var(--sun); padding: clamp(48px, 6vw, 80px) 0; }
-  .v-in { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
-  .venir .label { color: #fff; }
-  .venir .label::before { background: #fff; }
-  .venir h2 { margin: 0 0 8px; color: #fff; }
-  .venir p { margin: 0; color: #fff; }
-  .venir .btn-primary { background: #fff; color: var(--ink); }
-  .venir .btn-primary:hover { background: var(--paper-2); color: var(--ink); }
-
-  /* Le club en chiffres */
-  .c-titre { max-width: 16ch; margin-bottom: 40px; }
-  .chiffres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .chiffres > div { border-top: 3px solid var(--sun); padding-top: 18px; }
-  .chiffres strong { display: block; font-family: var(--font-title); font-stretch: 80%; font-weight: 800; font-size: clamp(3.2rem, 6vw, 5.4rem); color: #fff; line-height: 1; font-variant-numeric: tabular-nums; }
-  .chiffres span { display: block; margin-top: 8px; max-width: 32ch; font-size: .95rem; }
-
-  @media (max-width: 980px) {
-    .h-img { height: min(70vw, 460px); }
-    .h-panneau { position: relative; left: auto; bottom: auto; width: auto; margin: -64px 12px 0; padding: 26px 22px; }
-    .h-btns { grid-template-columns: 1fr; }
-    .h-chiffre { top: 52px; bottom: auto; }
-    .h-chiffre strong { font-size: 52px; }
-    .plan { padding-top: 32px; }
-    .tete { grid-template-columns: 1fr; margin-bottom: 28px; }
-    .tete .btn { justify-self: start; }
-    .chiffres { grid-template-columns: 1fr; }
-    .cases { grid-template-columns: 1fr 1fr; }
-    .j-liste a { grid-template-columns: 1fr; gap: 6px; }
-    .j-liste a svg { display: none; }
+  .hero { position: relative; min-height: min(86vh, 800px); padding-top: 84px; display: flex; color: #fff; background: var(--ink); overflow: hidden; }
+  .slides { position: absolute; inset: 0; }
+  .slides img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; opacity: 0; transform: scale(1.06); transition: opacity 1.4s ease, transform 7s ease-out; }
+  .slides img.on { opacity: 1; transform: scale(1); }
+  .voile { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,26,58,.92) 0%, rgba(0,26,58,.62) 42%, rgba(0,26,58,.12) 75%), linear-gradient(0deg, rgba(0,26,58,.75) 0%, transparent 45%); }
+  .vol { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; visibility: hidden; }
+  .trace { fill: none; stroke: rgba(255,255,255,.7); stroke-width: 2; stroke-dasharray: 2 12; stroke-linecap: round; }
+  .avion-svg path { fill: #fff; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+  @media (max-width: 700px) { .vol { display: none; } }
+  .hero-inner { position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: clamp(48px, 8vh, 96px) 0 clamp(96px, 13vh, 140px); }
+  .hero h1 { font-size: clamp(2.4rem, 6vw, 5rem); }
+  .hero h1 { color: #fff; max-width: 14ch; text-shadow: 0 2px 24px rgba(0,0,0,.25); }
+  .hero .lead { font-size: 1.2rem; }
+  .hero .eyebrow { color: #fff; }
+  .hero .lead { color: rgba(255,255,255,.88); max-width: 46ch; }
+  /* Mobile : la photo passe au-dessus, le texte sur fond uni pour rester lisible. */
+  .h-video-mobile { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s ease; }
+  .h-video-mobile.on { opacity: 1; }
+  /* Téléphone avec vidéo : plein écran, texte posé en bas de la vidéo */
+  @media (max-width: 700px) {
+    .hero.a-video { height: 100svh; min-height: 560px; padding-top: 0; flex-direction: column; justify-content: flex-end; }
+    .hero.a-video .slides, .hero.a-video .voile { position: absolute; inset: 0; height: auto; max-height: none; }
+    .hero.a-video .voile { background: linear-gradient(180deg, rgba(10,18,31,.55) 0%, rgba(10,18,31,0) 28%, rgba(10,18,31,0) 50%, rgba(10,18,31,.85) 100%); }
+    .hero.a-video .h-video-mobile { display: block; }
+    .hero.a-video .hero-inner { padding: 0 0 60px; }
+    /* Texte bas sur la vidéo : affiché tout de suite, sans attendre le défilement */
+    .hero.a-video .lead { visibility: visible !important; opacity: 1 !important; transform: none !important; }
+    .hero.a-video h1 { font-size: 2.3rem; }
   }
-  @media (max-width: 600px) {
-    .cases { grid-template-columns: 1fr; }
+  @media (max-width: 700px) {
+    .hero:not(.a-video) { flex-direction: column; min-height: 0; padding-top: 0; }
+    .hero:not(.a-video) .slides { position: relative; height: calc(min(46vw, 260px) + 120px); overflow: hidden; }
+    .hero:not(.a-video) .voile { inset: 0 0 auto 0; height: calc(min(46vw, 260px) + 120px); background: linear-gradient(180deg, rgba(10,18,31,.55) 0%, rgba(10,18,31,0) 40%, rgba(10,18,31,0) 60%, var(--ink) 100%); }
+    .hero-inner { padding: 0 0 22px; }
+    .hero .eyebrow { display: none; }
+    .hero h1 { font-size: 1.65rem; margin-bottom: .3em; max-width: 18ch; }
+    .hero .lead { font-size: .95rem; margin: 0; line-height: 1.5; }
+    .hero .lead { color: rgba(255,255,255,.82); }
+    .hero .btns .btn { flex: 1 1 auto; justify-content: center; }
+  }
+
+
+
+
+  .facons { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
+  .facons :global(.carte) { min-height: 0; }
+  .facons :global(.carte .img) { aspect-ratio: 3 / 2; flex: none; min-height: 0; }
+  @media (max-width: 860px) { .facons { grid-template-columns: 1fr; } .facons :global(.carte) { min-height: 0; } }
+  /* Les deux grands choix (baptême / devenir pilote), à cheval sur la photo */
+  .choix-section { position: relative; z-index: 2; padding-bottom: clamp(32px, 5vw, 56px); }
+  .question { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .choix { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; margin-top: -72px; }
+  .choix-carte { --c: var(--sun); position: relative; display: grid; grid-template-columns: 42% 1fr; min-height: 210px; border-radius: 20px; overflow: hidden; background: #fff; border: 1px solid var(--line); text-decoration: none; color: inherit; box-shadow: 0 18px 40px rgba(15,27,45,.12); transition: transform .25s, box-shadow .25s; }
+  .choix-carte:hover { transform: translateY(-3px); box-shadow: 0 22px 50px rgba(15,27,45,.18); color: inherit; }
+  .c-apprendre { --c: #1e5fa8; } .c-voler { --c: #1e5fa8; }
+  .choix-carte img { width: 100%; height: 100%; object-fit: cover; }
+  .choix-texte { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 18px 20px; border-top: 4px solid var(--c); }
+  .choix-texte h3 { font-size: clamp(1.2rem, 2.2vw, 1.55rem); margin: 0; }
+  .choix-texte p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.4; }
+  .badge { font-size: .75rem; font-weight: 700; letter-spacing: .04em; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--c) 14%, white); color: color-mix(in srgb, var(--c) 62%, black); }
+  .action { margin-top: auto; padding-top: 8px; font-weight: 600; color: color-mix(in srgb, var(--c) 78%, black); font-size: .95rem; }
+  .choix-carte.secondaire { grid-column: 1 / -1; grid-template-columns: 1fr; min-height: 0; box-shadow: none; background: transparent; }
+  .secondaire img { display: none; }
+  .secondaire .choix-texte { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 14px 20px; border-top: 0; border-left: 4px solid var(--c); }
+  .secondaire h3 { font-size: 1.1rem; }
+  .secondaire .action { margin: 0 0 0 auto; padding: 0; }
+  @media (max-width: 700px) {
+    .choix { grid-template-columns: 1fr; margin-top: 12px; gap: 10px; }
+    .choix-section { padding-bottom: 28px; }
+    .choix-carte { grid-template-columns: 34% 1fr; min-height: 0; box-shadow: 0 8px 22px rgba(15,27,45,.08); }
+    .choix-texte { padding: 12px 14px; border-top: 0; border-left: 4px solid var(--c); }
+    .choix-texte p { display: none; }
+    .choix-texte h3 { font-size: 1.15rem; }
+    .choix-carte img { min-height: 104px; }
+    .action { padding-top: 4px; font-size: .9rem; }
+    .secondaire .choix-texte { padding: 12px 14px; }
+    .secondaire p { display: none; }
+  }
+  .confiance { background: var(--white); }
+  /* Chiffres du club : titre à gauche, trois chiffres avec picto à droite, sur une ligne */
+  .conf-in { display: grid; grid-template-columns: minmax(220px, 1fr) 3fr; gap: 32px; align-items: center; padding: 28px 0; border-block: 1px solid var(--line); }
+  .confiance h2 { margin: 0; font-size: clamp(1.6rem, 2.6vw, 2.2rem); position: relative; padding-bottom: 14px; }
+  .confiance h2::after { content: ''; position: absolute; left: 0; bottom: 0; width: 36px; height: 3px; border-radius: 2px; background: var(--sun); }
+  .points { display: grid; gap: 24px; grid-template-columns: repeat(3, 1fr); }
+  .points div { display: grid; grid-template-columns: auto 1fr; column-gap: 16px; align-items: center; padding-left: 24px; border-left: 1px solid var(--line); }
+  .picto { grid-row: span 2; width: 38px; height: 38px; color: var(--marine); }
+  .points strong { font-family: var(--font-title); font-size: 2.3rem; line-height: 1.05; color: var(--marine); }
+  .points span { color: var(--muted); font-size: .93rem; line-height: 1.4; }
+  @media (max-width: 899px) { .conf-in { grid-template-columns: 1fr; gap: 20px; } }
+  @media (max-width: 700px) { .points { grid-template-columns: 1fr; gap: 16px; } .points div { padding-left: 0; border-left: 0; } .points strong { font-size: 1.8rem; } }
+  /* Passez nous voir : texte à gauche, photo du club-house à droite (plus de grand vide) */
+  .contact-band { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
+  .cb-photo { margin: 0; position: relative; border-radius: 24px; overflow: hidden; aspect-ratio: 16 / 10; }
+  .cb-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .cb-photo figcaption { position: absolute; left: 14px; bottom: 14px; background: rgba(0,26,58,.78); color: #fff; font-size: .82rem; padding: 5px 12px; border-radius: 999px; }
+  @media (max-width: 899px) { .contact-band { grid-template-columns: 1fr; } }
+  /* Météo du terrain : fine bande posée en haut de la photo d'accueil */
+  .hero-metar { position: absolute; top: 84px; left: 0; right: 0; z-index: 2; padding: 8px 0; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  @media (max-width: 700px) {
+    .hero-metar { padding: 6px 0; }
+    .hero-metar :global(.metar) { gap: 8px; flex-wrap: nowrap; align-items: flex-start; }
+    .hero-metar :global(.raw) { font-size: .7rem; line-height: 1.35; }
+    .hero-metar :global(.station), .hero-metar :global(.etat b) { display: none; }
+    .hero-metar :global(.etat) { margin-top: 4px; }
+    /* Sur la vidéo plein écran : METAR brut posé directement sur l'image, comme Horizon */
+    .hero.a-video .hero-metar { background: none; backdrop-filter: none; border: 0; padding: 4px 0 0; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+    .hero.a-video .hero-metar :global(.metar) { flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+    .hero.a-video .hero-metar :global(.station), .hero.a-video .hero-metar :global(.etat b) { display: inline; }
+    .hero.a-video .hero-metar :global(.etat) { margin-top: 0; }
+    .hero.a-video .hero-metar :global(.raw) { flex-basis: 100%; font-size: .78rem; line-height: 1.6; }
+  }
+  .contact-band .btns { margin-top: 20px; }
+
+  /* Mises en avant : baptême puis formation, photo d'un côté et l'essentiel de l'autre */
+  .duo { display: grid; gap: clamp(24px, 4vw, 56px); grid-template-columns: 1fr 1fr; align-items: center; }
+  .duo.inverse .duo-img { order: 2; }
+  .duo-img { border-radius: 24px; overflow: hidden; aspect-ratio: 4 / 3; }
+  .duo-img img { width: 100%; height: 100%; object-fit: cover; }
+  .vedette .eyebrow { color: var(--accent-fonce); }
+  .vedette .lead { margin: 0 0 20px; font-size: 1.08rem; }
+  .vedette.pilote { --accent: #1e5fa8; --accent-fonce: color-mix(in srgb, var(--accent) 78%, black); }
+  .formules { list-style: none; margin: 0 0 22px; padding: 0; border-top: 1px solid var(--line); }
+  .formules li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .formules span { display: flex; flex-direction: column; min-width: 0; }
+  .formules b { font-family: var(--font-title); font-weight: 600; font-size: 1.08rem; color: var(--ink); }
+  .formules small { color: var(--muted); font-size: .86rem; line-height: 1.35; }
+  .formules strong { flex: none; font-family: var(--font-title); font-size: 1.5rem; color: var(--accent-fonce); white-space: nowrap; }
+  .formules i { font-style: normal; font-family: var(--font-body); font-size: .78rem; font-weight: 500; color: var(--muted); margin-right: 6px; }
+  /* Parcours en 4 étapes reliées par une ligne fine (au lieu de 4 cases blanches) */
+  .parcours { list-style: none; margin: 8px 0 30px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; color: #fff !important; }
+  .parcours li { position: relative; display: flex; flex-direction: column; gap: 12px; font-family: var(--font-title); font-weight: 600; font-size: .98rem; line-height: 1.25; color: #fff; }
+  .parcours li::before { content: ''; position: absolute; top: 22px; left: 54px; right: -4px; height: 2px; background: rgba(255,255,255,.3); }
+  .parcours li:last-child::before { display: none; }
+  .parcours span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; color: #fff; font-size: .95rem; }
+  .parcours li:first-child span { background: var(--sun); border-color: var(--sun); color: var(--marine); }
+  @media (max-width: 899px) {
+    .duo { grid-template-columns: 1fr; }
+    .duo.inverse .duo-img { order: 0; }
+    .duo-img { aspect-ratio: 16 / 9; border-radius: 18px; }
+    .vedette .btns .btn { flex: 1 1 auto; justify-content: center; }
+  }
+  @media (max-width: 599px) {
+    .formules small { display: none; }
+    .parcours { grid-template-columns: 1fr 1fr; row-gap: 20px; }
+    .parcours li:nth-child(2)::before { display: none; }
   }
 </style>
