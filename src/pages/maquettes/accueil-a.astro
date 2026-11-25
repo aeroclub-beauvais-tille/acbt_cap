@@ -1,0 +1,119 @@
+---
+// Accueil A « Sobre » : bannière avec deux boutons, deux grandes portes, baptême photo + prix, bande pilote, chiffres, venir au club.
+import Base from '../../layouts/Base.astro';
+import { photo, photoUrl } from '../../lib/photo';
+import { url } from '../../lib/utils';
+import club from '../../data/club.json';
+import { pg, annees, heroImg, avions, parcours, clubHouse, chiffres } from '../../lib/accueil';
+import { n, passager, commandes, des, svg, ico } from '../../lib/bapteme';
+const flotte = await avions();
+const pict = ['<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>', svg.cal, svg.avion];
+---
+<Base title="Accueil (maquette A)">
+  <section class="page-head has-img hero" style={`--img: url('${photoUrl(heroImg)}')`}>
+    <div class="container">
+      <span class="eyebrow">Aéroclub de Beauvais-Tillé</span>
+      <h1>{pg.titre}</h1>
+      <p class="lead">{pg.texte.replace('{annees}', String(annees))}</p>
+      <div class="btns"><a class="btn btn-jaune" href={url('/contact?objet=Baptême')}>Réserver un baptême</a><a class="btn btn-ghost" href={url('/formations')}>Devenir pilote</a></div>
+    </div>
+  </section>
+
+  <section class="section portes-s">
+    <div class="container portes">
+      {[{ t: "Baptême de l'air", s: 'Découvrir', x: 'Admirez Beauvais depuis le ciel, seul ou accompagné.', i: pg.cartes[0].image, h: '/decouvrir-le-vol' },
+        { t: 'Devenir pilote', s: 'Apprendre', x: 'Du premier vol au brevet, avec nos instructeurs bénévoles.', i: pg.cartes[1].image, h: '/formations' }].map((p) => (
+        <a class="porte" href={url(p.h)}><img {...photo(p.i, '(min-width: 900px) 300px, 40vw')} alt="" /><div><span class="sur">{p.s}</span><h2>{p.t}</h2><p>{p.x}</p></div><em aria-hidden="true">→</em></a>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container duo">
+      <div>
+        <span class="eyebrow">Baptêmes de l'air</span>
+        <h2>Découvrir Beauvais d'en haut</h2>
+        <p class="lead">Des vols pour découvrir la région ou vivre votre première expérience aux commandes.</p>
+        <img class="d-img" {...photo('/uploads/decouvrir/bapteme-cockpit.jpg', '(min-width: 900px) 640px, 100vw')} alt="" loading="lazy" />
+      </div>
+      <div class="exp">
+        <h3>Choisissez votre expérience</h3>
+        <ul>
+          <li><span><b>{passager.titre}</b><small>En passager, avec un pilote du club.</small></span><strong><i>dès</i> {n(des)} €</strong></li>
+          {commandes.map((f) => <li><span><b>{f.titre}</b><small>{f.texte}</small></span><strong>{n(f.prix[0].prix)} €</strong></li>)}
+        </ul>
+        <div class="btns"><a class="btn btn-jaune" href={url('/contact?objet=Baptême')}>Réserver un baptême</a><a class="btn btn-outline" href={url('/decouvrir-le-vol')}>Tous les détails</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="container duo">
+      <div>
+        <span class="eyebrow">Formation de pilote</span>
+        <h2>{pg.formation.titre}</h2>
+        <p class="lead">{pg.formation.texte}</p>
+        <ol class="parcours">{parcours.map((e, i) => <li><span>{String(i + 1).padStart(2, '0')}</span>{e.titre}</li>)}</ol>
+        <div class="btns"><a class="btn btn-primary" href={url('/formations')}>Comment ça se passe</a></div>
+      </div>
+      <img class="d-img haut" {...photo(pg.formation.image, '(min-width: 900px) 640px, 100vw')} alt="" loading="lazy" />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container stats">
+      <h2>{pg.atouts_titre}</h2>
+      {chiffres(flotte.length).map((c, i) => <div><Fragment set:html={ico(pict[i % 3])} /><strong>{c.chiffre}</strong><span>{c.texte}</span></div>)}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container duo">
+      <div>
+        <span class="eyebrow">Nous trouver</span>
+        <h2>Venez nous voir au club</h2>
+        <p class="lead">{club.adresse}</p>
+        <div class="btns"><a class="btn btn-primary" href={url('/contact')}>Nous rendre visite</a></div>
+      </div>
+      <img class="d-img" {...photo(clubHouse, '(min-width: 900px) 640px, 100vw')} alt="Le club-house" loading="lazy" />
+    </div>
+  </section>
+</Base>
+<style>
+  .hero { min-height: min(78vh, 720px); }
+  .hero h1 { font-size: clamp(2.6rem, 6vw, 5rem); max-width: 13ch; }
+  .hero .btns { margin-top: 26px; }
+  .hero { padding-bottom: 110px; }
+  .dark .duo > div > h2 { color: #fff; } .dark .duo > div > .eyebrow { color: rgba(255,255,255,.75); } .dark .duo > div > .lead { color: rgba(255,255,255,.85); }
+  .portes-s { padding-top: 0; margin-top: -60px; position: relative; z-index: 2; }
+  .portes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .porte { position: relative; display: grid; grid-template-columns: 220px 1fr; gap: 22px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 12px; text-decoration: none; color: inherit; box-shadow: 0 24px 50px -28px rgba(8,43,80,.45); }
+  .porte img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; }
+  .porte h2 { font-size: 1.6rem; margin: 2px 0 6px; } .porte p { color: var(--muted); margin: 0; font-size: .95rem; padding-right: 30px; }
+  .sur { font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--rouge); }
+  .porte em { position: absolute; right: 20px; bottom: 16px; font-style: normal; color: var(--rouge); font-size: 1.4rem; }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 64px); align-items: center; }
+  .d-img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 22px; margin-top: 10px; }
+  .d-img.haut { aspect-ratio: 4 / 3; }
+  .exp { border: 1px solid var(--line); border-radius: 22px; padding: 30px; }
+  .exp ul { list-style: none; margin: 12px 0 24px; padding: 0; }
+  .exp li { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); }
+  .exp b { display: block; font-family: var(--font-title); font-size: 1.15rem; color: var(--ink); } .exp small { color: var(--muted); }
+  .exp strong { font-family: var(--font-title); font-size: 1.6rem; color: var(--marine); white-space: nowrap; } .exp i { font-style: normal; font-size: .85rem; color: var(--muted); font-family: var(--font-body); }
+  .parcours { list-style: none; margin: 8px 0 28px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .parcours li { position: relative; display: flex; flex-direction: column; gap: 12px; font-family: var(--font-title); font-weight: 600; color: #fff; font-size: .98rem; }
+  .parcours li::before { content: ''; position: absolute; top: 22px; left: 54px; right: -4px; height: 2px; background: rgba(255,255,255,.3); }
+  .parcours li:last-child::before { display: none; }
+  .parcours span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; }
+  .parcours li:first-child span { background: var(--rouge); border-color: var(--rouge); }
+  .stats { display: grid; grid-template-columns: 1.2fr repeat(3, 1fr); gap: 24px; align-items: center; padding: 26px 0; border-block: 1px solid var(--line); }
+  .stats h2 { margin: 0; font-size: clamp(1.6rem, 2.6vw, 2.2rem); }
+  .stats > div { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; border-left: 1px solid var(--line); padding-left: 22px; }
+  .stats :global(svg) { grid-row: span 2; width: 36px; height: 36px; color: var(--marine); }
+  .stats strong { font-family: var(--font-title); font-size: 2.2rem; color: var(--marine); line-height: 1.05; } .stats span { color: var(--muted); font-size: .9rem; }
+  @media (max-width: 899px) {
+    .portes, .duo { grid-template-columns: 1fr; } .porte { grid-template-columns: 120px 1fr; }
+    .portes-s { margin-top: 20px; } .stats { grid-template-columns: 1fr; } .stats > div { border: 0; padding: 0; }
+    .parcours { grid-template-columns: 1fr 1fr; row-gap: 20px; } .parcours li:nth-child(2)::before { display: none; }
+  }
+</style>

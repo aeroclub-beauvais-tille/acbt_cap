@@ -1,0 +1,94 @@
+---
+// Accueil C « Mosaïque » : grande photo centrée, quatre grandes vignettes vers les rubriques, chiffres, bande actualités, contact.
+import Base from '../../layouts/Base.astro';
+import NewsCard from '../../components/NewsCard.astro';
+import { photo, photoUrl } from '../../lib/photo';
+import { url } from '../../lib/utils';
+import pages from '../../data/pages.json';
+import { pg, annees, heroImg, avions, actus, chiffres } from '../../lib/accueil';
+import { n, des, svg, ico, tel, telHref } from '../../lib/bapteme';
+const flotte = await avions();
+const news = await actus(3);
+const tuiles = [
+  { t: "Baptême de l'air", x: `Survolez Beauvais, en passager ou aux commandes. Dès ${n(des)} €.`, i: pg.cartes[0].image, h: '/decouvrir-le-vol', grand: true },
+  { t: 'Devenir pilote', x: 'Du premier vol à la licence.', i: pg.cartes[1].image, h: '/formations' },
+  { t: 'La flotte', x: `${flotte.length} avions Robin et Jodel.`, i: pages.flotte.image, h: '/club/flotte' },
+  { t: 'Le club', x: 'Une association de passionnés depuis 1979.', i: pages.club.image, h: '/club' },
+];
+---
+<Base title="Accueil (maquette C)">
+  <section class="page-head has-img hero" style={`--img: url('${photoUrl(heroImg)}')`}>
+    <div class="container centre">
+      <span class="eyebrow">Aéroport de Beauvais-Tillé · Depuis 1979</span>
+      <h1>{pg.titre}</h1>
+      <p class="lead">{pg.texte.replace('{annees}', String(annees))}</p>
+      <div class="btns"><a class="btn btn-jaune" href={url('/contact?objet=Baptême')}>Réserver un baptême</a><a class="btn btn-ghost" href={url('/formations')}>Devenir pilote</a></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <span class="eyebrow">Que voulez-vous faire ?</span>
+      <div class="mosaique">
+        {tuiles.map((t) => (
+          <a class:list={['tuile', { grand: t.grand }]} href={url(t.h)}>
+            <img {...photo(t.i, t.grand ? '(min-width: 900px) 660px, 100vw' : '(min-width: 900px) 330px, 100vw')} alt="" />
+            <div><h2>{t.t}</h2><p>{t.x}</p><span>Découvrir <em aria-hidden="true">→</em></span></div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container chiffres">
+      {chiffres(flotte.length).map((c) => <div><strong>{c.chiffre}</strong><span>{c.texte}</span></div>)}
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="container">
+      <div class="tete"><div><span class="eyebrow">La vie du club</span><h2>Dernières nouvelles</h2></div><a class="btn btn-outline" href={url('/actualites')}>Toutes les actualités</a></div>
+      <div class="grid grid-3">{news.map((a) => <NewsCard actu={a} />)}</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container contact">
+      <div><h2>Une question ? Un projet de vol ?</h2><p>Le club vous répond par téléphone ou par e-mail. Pas d'horaires fixes : appelez avant de passer.</p></div>
+      <div class="btns"><a class="btn btn-primary" href={telHref}><Fragment set:html={ico(svg.tel)} /> {tel}</a><a class="btn btn-outline" href={url('/contact')}>Écrire au club</a></div>
+    </div>
+  </section>
+</Base>
+<style>
+  .hero { min-height: min(88vh, 820px); justify-content: center; }
+  .centre { text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .centre h1 { font-size: clamp(2.8rem, 7vw, 5.8rem); max-width: 14ch; color: #fff; }
+  .centre .lead { max-width: 48ch; margin-inline: auto; }
+  .centre .btns { margin-top: 28px; justify-content: center; }
+  :global(.page-head.hero.has-img) { background: linear-gradient(0deg, rgba(8,43,80,.85), rgba(8,43,80,.45) 60%, rgba(8,43,80,.6)), var(--img) center / cover no-repeat, var(--marine) !important; }
+  .mosaique { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 280px 280px; gap: 16px; }
+  .tuile { position: relative; border-radius: 22px; overflow: hidden; color: #fff; text-decoration: none; }
+  .tuile.grand { grid-row: span 2; }
+  .tuile:nth-child(2) { grid-column: span 2; }
+  .tuile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
+  .tuile:hover img { transform: scale(1.04); }
+  .tuile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(8,43,80,.9) 0%, rgba(8,43,80,.1) 60%); }
+  .tuile div { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 24px; }
+  .tuile h2 { color: #fff; font-size: 1.6rem; margin: 0 0 4px; } .tuile.grand h2 { font-size: 2.4rem; }
+  .tuile p { margin: 0 0 8px; color: rgba(255,255,255,.88); font-size: .95rem; }
+  .tuile span { font-weight: 600; } .tuile em { font-style: normal; color: var(--rouge); }
+  .chiffres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: center; padding: 10px 0; }
+  .chiffres div { display: flex; flex-direction: column; gap: 6px; } .chiffres div + div { border-left: 1px solid var(--line); }
+  .chiffres strong { font-family: var(--font-title); font-size: clamp(2.6rem, 5vw, 4rem); color: var(--marine); line-height: 1; }
+  .chiffres span { color: var(--muted); max-width: 30ch; margin-inline: auto; }
+  .tete { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 26px; }
+  .tete h2 { margin: 0; color: #fff; } .tete .eyebrow { color: rgba(255,255,255,.75); }
+  .contact { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; border: 1px solid var(--line); border-left: 4px solid var(--rouge); border-radius: 18px; padding: 28px 32px; }
+  .contact h2 { margin: 0 0 6px; font-size: 1.7rem; } .contact p { margin: 0; color: var(--muted); }
+  .contact :global(svg) { width: 18px; height: 18px; }
+  @media (max-width: 899px) {
+    .mosaique { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-rows: 230px; } .tuile.grand { grid-row: auto; } .tuile:nth-child(2) { grid-column: auto; }
+    .chiffres { grid-template-columns: 1fr; } .chiffres div + div { border: 0; }
+  }
+</style>

@@ -1,0 +1,125 @@
+---
+// Accueil B « Baptême d'abord » : prix dans la bannière, grille des 3 formules (comme la page Baptême), bande pilote, flotte, actualités.
+import Base from '../../layouts/Base.astro';
+import NewsCard from '../../components/NewsCard.astro';
+import { photo, photoUrl } from '../../lib/photo';
+import { url } from '../../lib/utils';
+import club from '../../data/club.json';
+import { pg, annees, heroImg, avions, actus, parcours, clubHouse } from '../../lib/accueil';
+import { n, passager, commandes, des, svg, ico, tel, telHref } from '../../lib/bapteme';
+const flotte = await avions();
+const news = await actus(3);
+const cols = [
+  { mode: 'En passager', i: svg.oeil, t: passager.titre, p: des, d: true, x: passager.texte, o: 'Vol découverte' },
+  ...commandes.map((f) => ({ mode: 'Aux commandes', i: svg.volant, t: f.titre, p: f.prix[0].prix, d: false, x: f.texte, o: "Vol d'initiation" })),
+];
+---
+<Base title="Accueil (maquette B)">
+  <section class="page-head has-img hero" style={`--img: url('${photoUrl(heroImg)}')`}>
+    <div class="container h-grille">
+      <div>
+        <span class="eyebrow">Aéroclub de Beauvais-Tillé</span>
+        <h1>{pg.titre}</h1>
+        <p class="lead">{pg.texte.replace('{annees}', String(annees))}</p>
+      </div>
+      <div class="h-carte">
+        <span class="sur">Baptême de l'air</span>
+        <p class="h-des">Dès <b>{n(des)} €</b></p>
+        <a class="btn btn-jaune" href={url('/contact?objet=Baptême')}>Réserver un baptême</a>
+        <a class="btn btn-outline" href={url('/formations')}>Devenir pilote</a>
+        <a class="h-tel" href={telHref}><Fragment set:html={ico(svg.tel)} /> {tel}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="tete"><div><span class="eyebrow">Baptêmes de l'air</span><h2>Voir Beauvais d'en haut</h2></div><a class="btn btn-outline" href={url('/decouvrir-le-vol')}>Tous les détails</a></div>
+      <div class="grille">
+        {cols.map((c) => (
+          <a class="col" href={url(`/contact?objet=${c.o}`)}>
+            <span class="mode"><Fragment set:html={ico(c.i)} /> {c.mode}</span>
+            <h3>{c.t}</h3>
+            <p class="prix">{c.d && <small>dès</small>}<b>{n(c.p)}</b> €</p>
+            <p class="txt">{c.x}</p>
+            <span class="go">Réserver <em aria-hidden="true">→</em></span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="container duo">
+      <img class="d-img" {...photo(pg.formation.image, '(min-width: 900px) 640px, 100vw')} alt="" loading="lazy" />
+      <div>
+        <span class="eyebrow">Formation de pilote</span>
+        <h2>{pg.formation.titre}</h2>
+        <p class="lead">{pg.formation.texte}</p>
+        <ol class="fil">{parcours.map((e, i) => <li><span>{i + 1}</span><b>{e.titre}</b></li>)}</ol>
+        <div class="btns"><a class="btn btn-primary" href={url('/formations')}>Le parcours complet</a><a class="btn btn-outline" href={url('/club/tarifs')}>Les tarifs</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="tete"><div><span class="eyebrow">La flotte</span><h2>{flotte.length} avions pour apprendre et voyager</h2></div><a class="btn btn-outline" href={url('/club/flotte')}>Voir la flotte</a></div>
+      <div class="avions">
+        {flotte.map((a) => <a href={url('/club/flotte')}>{a.data.photos[0] ? <img {...photo(a.data.photos[0], '260px')} alt="" loading="lazy" /> : <div class="vide" />}<b>{a.data.nom}</b><span>{a.data.immatriculation}</span></a>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="tete"><div><span class="eyebrow">La vie du club</span><h2>Dernières nouvelles</h2></div><a class="btn btn-outline" href={url('/actualites')}>Toutes les actualités</a></div>
+      <div class="grid grid-3">{news.map((a) => <NewsCard actu={a} />)}</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container visite">
+      <img {...photo(clubHouse, '200px')} alt="" loading="lazy" />
+      <div><h2>Venez nous voir au club</h2><p>{club.adresse}</p></div>
+      <a class="btn btn-primary" href={url('/contact')}>Infos pratiques</a>
+    </div>
+  </section>
+</Base>
+<style>
+  .hero { min-height: min(80vh, 740px); }
+  .h-grille { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; align-items: end; }
+  .hero h1 { font-size: clamp(2.6rem, 5.6vw, 4.6rem); max-width: 13ch; color: #fff; }
+  .h-carte { background: #fff; border-radius: 22px; padding: 26px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 30px 60px -30px rgba(0,0,0,.5); }
+  .h-carte .btn { justify-content: center; }
+  .sur { font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--rouge); }
+  .h-des { margin: 0 0 6px; font-family: var(--font-title); color: var(--marine); font-size: 1.3rem; } .h-des b { font-size: 3.2rem; letter-spacing: -.03em; }
+  .h-tel { display: inline-flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; color: var(--marine); text-decoration: none; } .h-tel :global(svg) { width: 18px; height: 18px; }
+  .tete { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 26px; } .tete h2 { margin: 0; }
+  .grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .col { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 22px; padding: 26px; text-decoration: none; color: inherit; transition: border-color .2s, transform .2s; }
+  .col:hover { border-color: var(--marine); transform: translateY(-3px); color: inherit; }
+  .mode { display: inline-flex; align-items: center; gap: 8px; font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ciel); } .mode :global(svg) { width: 18px; height: 18px; }
+  .col h3 { font-size: 1.4rem; margin: 10px 0 4px; }
+  .prix { margin: 0 0 8px; font-family: var(--font-title); color: var(--marine); font-size: 1.3rem; } .prix b { font-size: 3rem; line-height: 1; } .prix small { font-size: .9rem; color: var(--muted); margin-right: 6px; font-family: var(--font-body); }
+  .txt { color: var(--muted); font-size: .94rem; flex: 1; }
+  .go { font-weight: 600; color: var(--rouge); } .go em { font-style: normal; }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 64px); align-items: center; }
+  .d-img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 22px; }
+  .duo > div > h2 { color: #fff; } .duo > div > .eyebrow { color: rgba(255,255,255,.75); } .duo > div > .lead { color: rgba(255,255,255,.85); }
+  .fil { list-style: none; margin: 6px 0 26px; padding: 0; display: grid; gap: 12px; }
+  .fil li { display: flex; align-items: center; gap: 14px; color: #fff; }
+  .fil span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff; font-family: var(--font-title); font-weight: 700; flex: none; }
+  .fil li:first-child span { background: var(--rouge); border-color: var(--rouge); }
+  .fil b { font-family: var(--font-title); font-weight: 600; font-size: 1.05rem; }
+  .avions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .avions a { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); }
+  .avions img, .avions .vide { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 16px; margin-bottom: 8px; background: var(--marine); }
+  .avions b { font-family: var(--font-title); font-size: 1.02rem; } .avions span { color: var(--muted); font-size: .85rem; }
+  .visite { display: grid; grid-template-columns: 160px 1fr auto; gap: 28px; align-items: center; border: 1px solid var(--line); border-radius: 22px; padding: 16px 28px 16px 16px; }
+  .visite img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; } .visite h2 { margin: 0 0 4px; font-size: 1.6rem; } .visite p { margin: 0; color: var(--muted); }
+  @media (max-width: 899px) {
+    .h-grille, .grille, .duo { grid-template-columns: 1fr; } .avions { grid-template-columns: 1fr 1fr; }
+    .visite { grid-template-columns: 1fr; padding: 16px; }
+  }
+</style>
