@@ -32,14 +32,15 @@ const lien = `https://www.openstreetmap.org/?mlat=${club.latitude}&mlon=${club.l
       maxZoom: 19,
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(carte);
-    L.marker(pos, { icon: pin, title: el.dataset.titre })
+    const repere = L.marker(pos, { icon: pin, title: el.dataset.titre })
       .addTo(carte)
-      .bindPopup(`<strong>${el.dataset.titre}</strong><br>${(el.dataset.acces ?? '').split('|').join('<br>')}`)
-      .openPopup();
+      .bindPopup(`<strong>${el.dataset.titre}</strong><br>${(el.dataset.acces ?? '').split('|').join('<br>')}`);
+    // Sur une petite carte (téléphone), la bulle cacherait le plan : elle s'ouvre seulement en touchant le repère.
+    if (el.clientWidth >= 600) repere.openPopup();
   });
 </script>
 <style>
-  .plan { position: relative; width: 100%; height: 100%; min-height: var(--h); border-radius: 0; overflow: hidden; background: var(--paper-2); z-index: 0; }
+  .plan { position: relative; width: 100%; height: 100%; min-height: var(--h); border-radius: var(--radius); overflow: hidden; background: var(--paper-2); z-index: 0; }
   .secours { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 600; }
   :global(.pin-club) { background: none; border: 0; }
   :global(.pin-club svg) { filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }

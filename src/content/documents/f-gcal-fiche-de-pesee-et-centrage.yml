@@ -1,0 +1,7 @@
+categorie: Documentation avion
+avions:
+- F-GCAL
+type: Fiche de pesée et centrage
+remplace: rapport-de-pesee-f-gcal
+ordre: 7
+fichier: /uploads/membre/f-gcal-fiche-de-pesee-et-centrage.pdf

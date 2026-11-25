@@ -1,8 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import PageHead from '../../components/PageHead.astro';
-import { photo } from '../../lib/photo';
-import { url, dateFr } from '../../lib/utils';
+import NewsCard from '../../components/NewsCard.astro';
 import { getCollection } from 'astro:content';
 const actus = (await getCollection('actualites', (a) => a.data.publie)).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 const annees = [...new Set(actus.map((a) => a.data.date.getFullYear()))];
@@ -19,21 +18,8 @@ import pages from '../../data/pages.json';
       <noscript><style>{'.annee-bloc { display: block !important; }'}</style></noscript>
       {annees.map((y, i) => (
         <div class="annee-bloc" data-annee={y} style={i === 0 ? undefined : 'display:none'}>
-          <h2 class="an" data-sans-italique data-reveal>{y}</h2>
-          <ol class="liste" data-batch>
-            {actus.filter((a) => a.data.date.getFullYear() === y).map((a) => {
-              const img = a.data.image ?? a.data.galerie[0];
-              return (
-                <li class="news" data-annee={y}>
-                  <a href={url(`/actualites/${a.id}`)}>
-                    <span class="date">{dateFr(a.data.date, { day: 'numeric', month: 'long' })}</span>
-                    <span class="titre">{a.data.titre}</span>
-                    {img && <img {...photo(img, "200px")} alt="" loading="lazy" />}
-                  </a>
-                </li>
-              );
-            })}
-          </ol>
+          <h2 data-reveal>{y}</h2>
+          <div class="grid grid-3 grille-actus" data-batch>{actus.filter((a) => a.data.date.getFullYear() === y).map((a) => <NewsCard actu={a} />)}</div>
         </div>
       ))}
     </div>
@@ -46,9 +32,12 @@ import pages from '../../data/pages.json';
     document.querySelectorAll<HTMLElement>('.news').forEach((n) => {
       const ok = (!state.annee || n.dataset.annee === state.annee);
       n.style.display = ok ? '' : 'none';
+      n.toggleAttribute('data-cache', !ok);
     });
+    // On ne lit pas l'attribut style des cartes : l'animation d'apparition y écrit « transform: none »,
+    // ce qui faisait passer une année déjà affichée pour vide (2026 disparaissait après un aller-retour).
     document.querySelectorAll<HTMLElement>('.annee-bloc').forEach((b) => {
-      b.style.display = b.querySelector('.news:not([style*="none"])') ? '' : 'none';
+      b.style.display = b.querySelector('.news:not([data-cache])') ? '' : 'none';
     });
   }
   document.querySelectorAll<HTMLElement>('.filters').forEach((group) => {
@@ -61,22 +50,4 @@ import pages from '../../data/pages.json';
     });
   });
 </script>
-<style>
-  /* Registre du club : l'année en grand dans la marge, une ligne par actualité (date, titre, vignette) */
-  .annee-bloc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.8fr); gap: 0 clamp(24px, 5vw, 72px); align-items: start; margin-bottom: 64px; }
-  .an { position: sticky; top: 130px; font-stretch: 75%; font-weight: 800; font-size: clamp(3.6rem, 9vw, 8rem); line-height: .85; margin: 0; padding-top: 14px; border-top: 3px solid var(--sun); }
-  .liste { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--ink); }
-  .liste a { display: grid; grid-template-columns: 9em 1fr 128px; gap: 24px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
-  .date { font-family: var(--font-title); font-stretch: 90%; font-size: .76rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-  .titre { font-family: var(--font-title); font-stretch: 85%; font-weight: 700; font-size: clamp(1.1rem, 1.7vw, 1.4rem); line-height: 1.2; color: var(--ink); }
-  .liste img { width: 128px; aspect-ratio: 3 / 2; object-fit: cover; }
-  .liste a:hover .titre { text-decoration: underline; text-decoration-color: var(--sun); text-decoration-thickness: 3px; text-underline-offset: 5px; }
-  @media (max-width: 800px) {
-    .annee-bloc { grid-template-columns: 1fr; }
-    .an { position: static; margin-bottom: 16px; font-size: 4rem; }
-    .liste a { grid-template-columns: 1fr 88px; gap: 4px 16px; padding: 14px 0; }
-    .date { grid-column: 1; grid-row: 1; }
-    .titre { grid-column: 1; grid-row: 2; font-size: 1.08rem; }
-    .liste img { grid-column: 2; grid-row: 1 / 3; width: 88px; }
-  }
-</style>
+<style>.annee-bloc { margin-bottom: 48px; } .grille-actus { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }</style>

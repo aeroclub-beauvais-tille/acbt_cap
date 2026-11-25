@@ -7,7 +7,7 @@ import { asset, url } from '../../lib/utils';
 const avions = (await getCollection('avions', (a) => a.data.actif)).sort((a, b) => a.data.ordre - b.data.ordre);
 import pages from '../../data/pages.json';
 ---
-<Base univers="voler" title="La flotte" description="Les avions de l'aéroclub de Beauvais-Tillé : Robin DR400, DR300 et Jodel D120.">
+<Base univers="voler" title="La flotte" description="Les avions de l'aéroclub de Beauvais-Tillé : Robin DR400, DR300, DR315 et Jodel D120.">
   <PageHead eyebrow="Notre flotte" image={pages.flotte.image} title={pages.flotte.titre.replace('{nombre}', String(avions.length))} lead={pages.flotte.texte} />
   <section class="flotte" aria-label="Les avions">
     {avions.map((a, i) => (
@@ -16,11 +16,13 @@ import pages from '../../data/pages.json';
           <span class="a-num">{String(i + 1).padStart(2, '0')} / {String(avions.length).padStart(2, '0')}</span>
           {a.data.usage && <span class="a-usage">{a.data.usage}</span>}
         </div>
-        {a.data.immatriculation && <p class="immat" data-split aria-hidden="true">{a.data.immatriculation}</p>}
-        <div class="a-grille">
-          <div class="a-photo" data-clip>
-            {a.data.photos[0] && <img {...photo(a.data.photos[0], '(min-width: 900px) 60vw, 100vw')} alt={a.data.nom} loading={i < 2 ? 'eager' : 'lazy'} />}
-          </div>
+        <div class:list={["a-grille", { "sans-photo": !a.data.photos[0] }]}>
+          {a.data.immatriculation && <p class="immat" data-glisse={i % 2 ? 1 : -1} aria-hidden="true">{a.data.immatriculation}</p>}
+          {a.data.photos[0] && (
+            <div class="a-photo" data-clip>
+              <img {...photo(a.data.photos[0], '(min-width: 900px) 60vw, 100vw')} alt={a.data.nom} loading={i < 2 ? 'eager' : 'lazy'} />
+            </div>
+          )}
           <div class="a-infos">
             <h2 data-sans-italique>{a.data.nom}</h2>
             <dl class="fiche">
@@ -41,42 +43,53 @@ import pages from '../../data/pages.json';
   </section>
   <section class="section">
     <div class="container" style="text-align:center">
-      <h2 data-split>Envie de voler avec nous ?</h2>
+      <h2 data-split>{pages.flotte.intertitres.fin}</h2>
       <a class="btn btn-primary" data-reveal="scale" href={url('/club/tarifs')}>Voir les tarifs</a>
     </div>
   </section>
 </Base>
 <style>
-  /* Fiche technique par avion : bandeau bleu nuit avec l'immatriculation, grande photo, caractéristiques en tableau */
-  .flotte { padding: clamp(32px, 5vw, 64px) 0; display: grid; gap: clamp(28px, 4vw, 48px); }
-  .avion { width: min(var(--max), 100% - 2 * clamp(16px, 4vw, 64px)); margin: 0 auto; background: var(--white); border-top: 3px solid var(--sun); box-shadow: 0 0 0 1px var(--line); scroll-margin-top: 120px; }
-  .a-tete { display: flex; justify-content: space-between; gap: 16px; padding: 12px clamp(18px, 3vw, 32px); background: var(--nuit); color: #a7b3ca; font-family: var(--font-title); font-stretch: 90%; font-size: .76rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
-  .a-num { color: var(--sun); white-space: nowrap; }
-  .a-usage { text-align: right; }
-  .immat { font-family: var(--font-title); font-stretch: 75%; font-weight: 800; font-size: clamp(3.6rem, 11vw, 9rem); letter-spacing: -.02em; line-height: .9; color: var(--ink); margin: 0; padding: clamp(18px, 3vw, 32px) clamp(18px, 3vw, 32px) 0; white-space: nowrap; }
-  .a-grille { display: grid; gap: clamp(20px, 3vw, 40px); grid-template-columns: 1.4fr 1fr; align-items: start; padding: clamp(18px, 3vw, 32px); }
-  .a-photo { aspect-ratio: 4 / 3; overflow: hidden; background: var(--paper-2); }
+  /* Un avion = un chapitre : son immatriculation en très grand, une grande photo, une fiche en filets */
+  .flotte { padding: clamp(24px, 4vw, 56px) 0 0; }
+  .avion { width: min(var(--max), 100% - 2 * clamp(20px, 4vw, 56px)); margin: 0 auto; padding: clamp(32px, 5vw, 72px) 0; border-bottom: 1px solid var(--line); scroll-margin-top: 80px; }
+  .a-tete { display: flex; justify-content: space-between; gap: 16px; font-family: var(--font-title); font-size: .74rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); padding-bottom: 14px; }
+  /* Immatriculation géante en filigrane derrière la fiche, qui glisse vers la gauche quand on fait défiler la page */
+  /* Calée sur la colonne de la fiche et taillée pour y tenir en entier : rien n'est caché par la photo en haut de page */
+  .immat { position: absolute; z-index: 0; top: -.06em; right: 0; margin: 0; pointer-events: none; user-select: none; font-family: var(--font-title); font-weight: 700; font-size: clamp(5rem, 10.5vw, 9.5rem); letter-spacing: -.04em; line-height: .8; color: color-mix(in srgb, var(--ink) 4%, transparent); white-space: nowrap; }
+  .avion:nth-child(even) .immat { right: auto; left: 0; }
+  .a-grille > :not(.immat) { position: relative; z-index: 1; }
+  .avion { overflow: hidden; }
+  .a-grille { position: relative; display: grid; gap: clamp(24px, 4vw, 64px); grid-template-columns: 1.5fr 1fr; align-items: start; }
+  .avion:nth-child(even) .a-grille { grid-template-columns: 1fr 1.5fr; }
+  .avion:nth-child(even) .a-photo { order: 2; }
+  /* Avion sans photo (pas encore prise) : la fiche occupe la largeur, sans case vide à côté */
+  .a-grille.sans-photo, .avion:nth-child(even) .a-grille.sans-photo { grid-template-columns: minmax(0, 1fr); }
+  .sans-photo .a-infos { max-width: 640px; }
+  .a-photo { border-radius: var(--radius); overflow: hidden; aspect-ratio: 4 / 3; background: var(--paper-2); }
   .a-photo img { width: 100%; height: 100%; object-fit: cover; }
-  .a-infos h2 { font-size: clamp(1.7rem, 2.8vw, 2.4rem); margin: 0 0 18px; }
-  .fiche { margin: 0 0 20px; border-top: 2px solid var(--ink); }
-  .fiche div { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--line); }
-  .fiche dt { font-family: var(--font-title); font-stretch: 90%; font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-  .fiche dd { margin: 0; font-family: var(--font-title); font-stretch: 85%; font-weight: 750; font-size: 1.1rem; color: var(--ink); text-align: right; }
+  .a-infos h2 { font-size: clamp(1.9rem, 3.2vw, 3rem); margin: 0 0 24px; }
+  .fiche { margin: 0 0 24px; border-top: 1px solid var(--line); }
+  .fiche div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .fiche dt { color: var(--muted); font-size: .9rem; }
+  .fiche dd { margin: 0; font-family: var(--font-title); font-size: 1.05rem; color: var(--ink); text-align: right; }
   .desc { color: var(--muted); max-width: 46ch; }
-  .vignettes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 20px; }
-  .vignettes a { display: block; overflow: hidden; }
-  .vignettes img { aspect-ratio: 1; width: 100%; object-fit: cover; transition: transform .6s; }
+  .vignettes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 24px; }
+  .vignettes a { display: block; border-radius: var(--radius); overflow: hidden; }
+  .vignettes img { aspect-ratio: 1; width: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2,.7,.2,1); }
   .vignettes a:hover img { transform: scale(1.06); }
-  @media (max-width: 899px) { .a-grille { grid-template-columns: 1fr; } }
+  @media (max-width: 899px) {
+    .a-grille, .avion:nth-child(even) .a-grille { grid-template-columns: minmax(0, 1fr); }
+    .avion:nth-child(even) .a-photo { order: 0; }
+  }
   /* Téléphone : un avion par écran, le défilement s'arrête sur chacun */
   @media (max-width: 599px) {
-    .flotte { gap: 18px; padding-top: 20px; }
-    .avion { scroll-margin-top: 112px; }
-    .immat { font-size: 19vw; padding: 14px 16px 0; }
-    .a-grille { padding: 14px 16px 18px; gap: 14px; }
-    .a-infos h2 { font-size: 1.6rem; margin-bottom: 12px; }
-    .fiche div { padding: 8px 0; }
+    .avion { min-height: calc(100svh - 76px); padding: 20px 0 28px; scroll-margin-top: 76px; }
+    .immat, .avion:nth-child(even) .immat { position: relative; top: auto; left: auto; right: auto; font-size: 30vw; margin: 4px 0 -.42em; color: color-mix(in srgb, var(--ink) 7%, transparent); }
+    .a-photo { aspect-ratio: 4 / 3; }
+    .a-infos h2 { font-size: 1.7rem; margin-bottom: 14px; }
+    .fiche div { padding: 9px 0; }
+    
     .desc { font-size: .95rem; margin-bottom: 0; }
-    .vignettes { margin-top: 14px; }
+    .vignettes { gap: 6px; margin-top: 16px; }
   }
 </style>

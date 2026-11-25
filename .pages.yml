@@ -160,7 +160,7 @@ content:
             fields:
               - { name: image, label: Photo, type: image }
               - { name: legende, label: Légende, type: string }
-          - { name: video, label: Vidéo de fond (facultatif), type: file, description: "Fichier MP4 court (10 à 30 secondes), sans son, de préférence moins de 15 Mo. Elle passe en boucle par-dessus les photos. Laissez vide pour garder les photos qui défilent." }
+          - { name: videos_mobile, label: Vidéos de fond sur téléphone (facultatif), type: file, list: true, description: "MP4 verticaux, sans son, légers (moins de 5 Mo chacun). Elles passent l'une après l'autre, en plein écran, seulement sur téléphone ; l'ordinateur garde les photos. Mettez une image JPG du même nom à côté de chaque vidéo pour l'aperçu avant lecture." }
           - name: cartes
             label: "Les 3 choix sous la photo d'accueil (dans l'ordre : baptême, devenir pilote, déjà pilote). Le prix « dès … € » du baptême est ajouté automatiquement"
             type: object
@@ -199,6 +199,11 @@ content:
         fields:
           - { name: titre, label: Grand titre, type: string }
           - { name: image, label: Photo d'en-tête, type: image }
+          - name: intertitres
+            label: Titres des parties de la page
+            type: object
+            fields:
+              - { name: savoir, label: "Titre « Bon à savoir »", type: string }
       - name: formations
         label: Apprendre (formations)
         type: object
@@ -206,6 +211,12 @@ content:
           - { name: titre, label: Grand titre, type: string }
           - { name: texte, label: Texte sous le titre, type: text }
           - { name: image, label: Photo d'en-tête, type: image }
+          - name: intertitres
+            label: Titres des parties de la page
+            type: object
+            fields:
+              - { name: licences, label: "Titre du comparatif des licences", type: string }
+              - { name: avant, label: "Titre des questions fréquentes", type: string }
       - name: flotte
         label: La flotte
         type: object
@@ -213,6 +224,11 @@ content:
           - { name: titre, label: Grand titre, type: string }
           - { name: texte, label: Texte sous le titre, type: text }
           - { name: image, label: Photo d'en-tête, type: image }
+          - name: intertitres
+            label: Titres des parties de la page
+            type: object
+            fields:
+              - { name: fin, label: "Titre en bas de page", type: string }
       - name: tarifs
         label: Tarifs
         type: object
@@ -220,6 +236,14 @@ content:
           - { name: titre, label: Grand titre, type: string }
           - { name: texte, label: Texte sous le titre, type: text }
           - { name: image, label: Photo d'en-tête, type: image }
+          - name: intertitres
+            label: Titres des parties de la page
+            type: object
+            fields:
+              - { name: heures, label: "Titre des heures de vol", type: string }
+              - { name: adhesion, label: "Titre de l'adhésion", type: string }
+              - { name: formules, label: "Titre des vols découverte", type: string }
+              - { name: divers, label: "Titre des tarifs divers", type: string }
       - name: club
         label: Le club
         type: object
@@ -227,6 +251,15 @@ content:
           - { name: titre, label: Grand titre, type: string }
           - { name: texte, label: Texte sous le titre, type: text }
           - { name: image, label: Photo d'en-tête, type: image }
+          - name: intertitres
+            label: Titres des parties de la page
+            type: object
+            fields:
+              - { name: locaux, label: "Titre « Nos locaux »", type: string }
+              - { name: comite, label: "Titre « Le comité »", type: string }
+              - { name: histoire, label: "Titre « Notre histoire »", type: string }
+              - { name: vie, label: "Titre des actualités", type: string }
+              - { name: fin, label: "Titre du bandeau de fin", type: string }
       - name: historique
         label: Notre histoire
         type: object
@@ -247,6 +280,11 @@ content:
           - { name: titre, label: Grand titre, type: string }
           - { name: texte, label: Texte sous le titre, type: text }
           - { name: image, label: Photo d'en-tête, type: image }
+          - name: intertitres
+            label: Titres des parties de la page
+            type: object
+            fields:
+              - { name: carte, label: "Titre au-dessus de la carte", type: string }
       - name: membre
         label: Espace membre
         type: object
@@ -263,6 +301,7 @@ content:
     fields:
       - { name: accroche, label: Phrase sous le titre (courte), type: text, description: "Une ou deux lignes au maximum : sur téléphone, les prix doivent rester visibles sans faire défiler." }
       - { name: intro, label: Introduction, type: text }
+      - { name: photo, label: Photo sous les formules, type: image, description: "Grande photo affichée sous les trois formules. Laisser vide pour ne rien afficher." }
       - { name: bon_cadeau, label: Texte bon cadeau, type: text }
       - { name: deroulement_titre, label: Titre du déroulé, type: string }
       - name: deroulement
@@ -319,20 +358,21 @@ content:
       - { name: privileges_note, label: Note sous le comparatif, type: text }
       - { name: maintien_titre, label: Titre « Garder sa licence valide », type: string }
       - { name: maintien_intro, label: Introduction, type: text }
-      - name: maintien
-        label: Règles de maintien (expérience récente, prorogation, renouvellement, médical)
+      - name: validite
+        label: Garder sa licence valide (une ligne par question, une colonne LAPL et une colonne PPL)
         type: object
         list: true
         fields:
-          - { name: titre, label: Titre, type: string }
-          - { name: pour, label: Concerne, type: string, description: 'Exemple : LAPL et PPL' }
-          - { name: chiffre, label: Chiffre clé, type: string, description: 'Mis en grand en haut de la carte. Exemple : 90 jours' }
-          - { name: chiffre_legende, label: Précision sous le chiffre, type: string, description: 'Exemple : glissants' }
-          - { name: conditions_intro, label: Phrase avant la liste, type: string, description: "Exemple : Dans les 12 mois avant l'échéance :" }
-          - { name: conditions, label: Conditions (une par ligne), type: string, list: true }
-          - { name: sinon_label, label: Mot devant la solution de rattrapage, type: string, description: 'Laisser vide pour « Sinon ». Exemples : Ou bien, Attention' }
-          - { name: sinon, label: Solution de rattrapage (ligne du bas), type: text }
-          - { name: texte, label: Texte (utilisé seulement s'il n'y a pas de conditions), type: text }
+          - { name: question, label: Question, type: string, description: 'Exemple : Emmener des passagers' }
+          - { name: commun, label: Pareil pour les deux licences, type: boolean, description: 'Coché : une seule case « Pareil pour les deux », remplie avec les champs LAPL' }
+          - { name: lapl_chiffre, label: LAPL - chiffre clé, type: string }
+          - { name: lapl_legende, label: LAPL - précision, type: string }
+          - { name: lapl_points, label: LAPL - conditions (une par ligne), type: string, list: true }
+          - { name: lapl_note, label: LAPL - ligne du bas, type: text }
+          - { name: ppl_chiffre, label: PPL - chiffre clé, type: string }
+          - { name: ppl_legende, label: PPL - précision, type: string }
+          - { name: ppl_points, label: PPL - conditions (une par ligne), type: string, list: true }
+          - { name: ppl_note, label: PPL - ligne du bas, type: text }
       - { name: maintien_note, label: Note en bas, type: text }
       - { name: parcours_titre, label: Titre du parcours, type: string }
       - name: parcours
@@ -402,6 +442,7 @@ content:
       - { name: adresse, label: Adresse, type: string }
       - { name: telephone, label: Téléphone, type: string }
       - { name: email, label: E-mail, type: string }
+      - { name: formulaire_cle, label: Clé du formulaire de contact (Web3Forms), type: string, description: 'Clé reçue par e-mail après avoir saisi l’adresse du club sur web3forms.com. Vide : le formulaire ouvre la messagerie du visiteur.' }
       - { name: facebook, label: Page Facebook, type: string }
       - { name: aerogest, label: Lien Aerogest, type: string }
       - { name: horaires, label: Horaires, type: string }
@@ -458,24 +499,35 @@ content:
     format: yaml
     filename: '{primary}.yml'
     view:
-      fields: [titre, categorie, avions]
+      fields: [titre, categorie, avions, type]
       primary: titre
     fields:
-      - { name: titre, label: Titre, type: string, required: true }
       - name: categorie
         label: Rubrique de l'espace membre
         type: select
         required: true
+        description: "« Documentation avion » pour un document rattaché à un avion ; sinon choisissez la rubrique qui convient."
         options:
           values: ['Vie du club', 'Documentation pilote', 'Documentation avion', 'Pour les élèves', 'Examens', 'Examen pratique', 'Sécurité', 'Préparation des vols', 'Météo', 'Formulaires']
       - name: avions
-        label: Avion(s) concerné(s) (seulement pour « Documentation avion »)
+        label: Avion(s) concerné(s)
         type: select
+        description: "Pour un document rattaché à un avion. Laissez vide pour un document général / du club."
         options:
           multiple: true
           values: ['F-GCAL', 'F-BXEK', 'F-BTBS', 'F-BIXA']
+      - name: type
+        label: Type de document officiel
+        type: select
+        description: "Sert au nom automatique et au suivi de validité. Pour un manuel ou une check-list, laissez vide et remplissez « Type de document avion » plus bas."
+        options:
+          values: ["Certificat d'immatriculation", 'Certificat de navigabilité (CDN)', "Certificat d'examen de navigabilité (CEN)", 'Certificat acoustique', 'Assurance', 'Fiche de pesée et centrage', 'Licence station radio', 'Autorisation radio', 'Bulletin météo', 'Règlement intérieur', 'Statuts', 'Compte-rendu', 'Note de sécurité', 'Divers']
+      - { name: titre, label: Titre, type: string, description: "Laissez vide pour un nom automatique « F-GCAL - Certificat d'immatriculation » (immatriculation + type)." }
+      - { name: debut, label: Début de validité, type: date }
+      - { name: fin, label: Fin de validité, type: date, description: "Laissez vide si le document n'expire pas." }
+      - { name: remplace, label: Remplace le document, type: string, description: "Nom de fichier (sans .yml) du document remplacé : l'ancien passe automatiquement en historique. Exemple : cen-f-gcal-2025" }
       - name: rubrique
-        label: Type de document avion
+        label: Type de document avion (manuels, check-lists…)
         type: select
         options:
           values: ['Manuel de vol', 'Paramètres', 'Check-list', 'Centrage', 'Guide radio rapide', 'Radio VFR', 'Transpondeur', 'DME', 'Balise de détresse', 'Autre']

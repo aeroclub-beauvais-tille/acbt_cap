@@ -1,9 +1,9 @@
 ---
-import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/outfit/wght.css';
 import '@fontsource-variable/inter/wght.css';
 import '../styles/global.css';
 // Polices hébergées sur le site (plus rapide et sans appel à Google) ; les deux fichiers utiles sont chargés en priorité.
-import policeTitre from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
+import policeTitre from '@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2?url';
 import policeTexte from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -29,7 +29,7 @@ const partage = new URL(asset(image || '/partage.jpg'), Astro.site).href;
     <link rel="preload" href={policeTitre} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={policeTexte} as="font" type="font/woff2" crossorigin />
     <link rel="canonical" href={canonical} />
-    <meta name="theme-color" content="#0a1a3a" />
+    <meta name="theme-color" content="#0f1b2d" />
     <meta property="og:type" content={type} />
     <meta property="og:site_name" content="Aéroclub de Beauvais-Tillé" />
     <meta property="og:locale" content="fr_FR" />

@@ -3,9 +3,9 @@ import { photo, photoUrl } from '../lib/photo';
 // Page Baptêmes : les prix doivent être lisibles dès l'ouverture, sans faire défiler, sur téléphone comme sur tablette.
 // Tout vient du back-office : formules et prix (Tarifs), textes (Page Découvrir), titre et photo (Pages du site).
 import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
 import Etapes from '../components/Etapes.astro';
 import Faq from '../components/Faq.astro';
-import Icone from '../components/Icone.astro';
 import d from '../data/decouvrir.json';
 import pages from '../data/pages.json';
 import club from '../data/club.json';
@@ -13,33 +13,30 @@ import t from '../data/tarifs.json';
 import { url, asset } from '../lib/utils';
 const n = (x: number) => x.toLocaleString('fr-FR');
 const tel = `tel:${club.telephone.replace(/\s/g, '')}`;
+// Bandeau « Bon à savoir » sous la photo : l'essentiel en quatre repères, tiré des questions fréquentes
+const reperes = [
+  { titre: 'Départ', texte: 'Club-house, zone aéroplaisance de Beauvais-Tillé', svg: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>' },
+  { titre: 'Météo', texte: 'Vol reporté sans frais si le temps ne permet pas de voler', svg: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>' },
+  { titre: 'Idée cadeau', texte: 'Toutes les formules existent en bon cadeau', svg: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>' },
+  { titre: 'Règlement', texte: 'Virement, chèque ou espèces', svg: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>' },
+];
 ---
 <Base univers="decouvrir" title="Baptême de l'air" description={`Baptême de l'air, vol découverte et vol d'initiation à Beauvais-Tillé, dès ${n(Math.min(...t.formules.flatMap((f) => f.prix.map((p) => p.prix))))} €.`}>
-  {/* Bon cadeau en fine bannière tout en haut : visible tout de suite, sans pousser les prix hors de l'écran */}
-  <a class="bandeau-cadeau" href={url('/contact?objet=Bon cadeau')}>
-    <span class="container">
-      <Icone nom="cadeau" />
-      <span class="bc-texte"><b>Offrez un baptême de l'air</b><span class="bc-detail">{d.bon_cadeau}</span></span>
-      <span class="bc-action"><span class="bc-long">Demander un bon cadeau</span><span class="bc-court">Bon cadeau</span> <span aria-hidden="true">→</span></span>
-    </span>
-  </a>
-  <section class="offre">
-    <div class="container offre-grid">
-      <div class="intro" style={`--img: url('${photoUrl(pages.decouvrir.image)}')`}>
-        <span class="eyebrow">Baptême de l'air à Beauvais</span>
-        <h1>{pages.decouvrir.titre.replace(/-/g, '\u2011')}</h1>
-        <p class="accroche">{d.accroche}</p>
-        <div class="btns cta-large">
-          <a class="btn btn-primary" href={url('/contact?objet=Baptême')}>Réserver mon vol</a>
-          <a class="btn btn-clair" href={tel}>{club.telephone}</a>
-        </div>
-      </div>
+  <PageHead eyebrow="Baptême de l'air" image={pages.decouvrir.image} title={pages.decouvrir.titre} lead={d.accroche}>
+    <div class="cta-tete">
+      <a class="btn btn-jaune" href={url('/contact?objet=Vol découverte')}>Réserver un baptême</a>
+    </div>
+  </PageHead>
+ <section class="offre">
+    <div class="container">
+      <span class="eyebrow">Nos formules</span>
+      <h2 class="o-titre">Choisissez votre vol</h2>
       <div class="prix" aria-label="Formules et prix">
         {t.formules.map((f) => (
           <article class:list={['formule', { multi: f.prix.length > 1 }]}>
             <div class="f-tete">
-              <h2>{f.titre}</h2>
-              {f.prix.length === 1 && <p class="montant"><b>{n(f.prix[0].prix)} €</b><span>{f.prix[0].libelle}</span></p>}
+              <h2><span class="f-type">{/d[ée]couverte|bapt[eê]me/i.test(f.titre) ? 'En passager' : 'Aux commandes'}</span>{f.titre}</h2>
+              {f.prix.length === 1 && <p class="montant"><b>{n(f.prix[0].prix)} €</b></p>}
             </div>
             <p class="f-texte">{f.texte}</p>
             {f.prix.length > 1 && (
@@ -48,118 +45,105 @@ const tel = `tel:${club.telephone.replace(/\s/g, '')}`;
           </article>
         ))}
       </div>
+      {d.photo && <img class="offre-photo" {...photo(d.photo, '(min-width: 1200px) 1380px, 100vw')} alt="" loading="eager" />}
+      <ul class="reperes" aria-label="Bon à savoir">
+        {reperes.map((r) => (
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={r.svg} /><span><b>{r.titre}</b>{r.texte}</span></li>
+        ))}
+      </ul>
     </div>
   </section>
 
   {d.deroulement.length > 0 && (
-    <section class="section white">
+    <section class="section dark">
       <div class="container">
         <span class="eyebrow">Le jour J</span>
-        <h2 data-split>{d.deroulement_titre}</h2>
-        <p class="lead" data-reveal>{d.intro}</p>
+        <h2>{d.deroulement_titre}</h2>
+        <p class="lead">{d.intro}</p>
         <Etapes etapes={d.deroulement} />
       </div>
     </section>
   )}
   {d.questions.length > 0 && (
-    <section class="section soft">
+    <section class="section">
       <div class="container">
         <span class="eyebrow">Questions fréquentes</span>
-        <h2 data-split>Bon à savoir</h2>
+        <h2 data-split>{pages.decouvrir.intertitres.savoir}</h2>
         <Faq questions={d.questions} />
       </div>
     </section>
   )}
   <div class="barre-mobile">
-    <a class="btn btn-primary" href={url('/contact?objet=Baptême')}>Réserver</a>
+    <a class="btn btn-jaune" href={url('/contact?objet=Vol découverte')}>Réserver un baptême</a>
     <a class="btn btn-outline" href={tel} aria-label={`Appeler le ${club.telephone}`}>Appeler</a>
   </div>
 </Base>
+<script>
+  const barre = document.querySelector('.barre-mobile');
+  const tete = document.querySelector('.page-head');
+  if (barre && tete && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => barre.classList.toggle('visible', !e.isIntersecting)).observe(tete);
+  } else barre?.classList.add('visible');
+</script>
 <style>
-  .offre { padding: 20px 0 28px; background: var(--paper); }
-  .offre-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
-  @media (min-width: 900px) { .offre { padding: 28px 0 36px; } .offre-grid { grid-template-columns: .9fr 1.1fr; align-items: stretch; gap: 24px; } }
-
-  .intro .eyebrow { margin-bottom: .5em; color: var(--accent-fonce); }
-  .intro h1 { font-size: clamp(1.7rem, 4vw, 2.9rem); margin-bottom: .3em; max-width: 16ch; text-wrap: balance; }
-  .accroche { color: var(--muted); font-size: 1rem; margin: 0; max-width: 46ch; }
-  .cta-large { display: none; }
-  /* Tablette et ordinateur : la photo du club en fond du bloc de présentation */
-  @media (min-width: 900px) {
-    .intro { position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 28px; border-radius: 0; color: #fff; overflow: hidden; isolation: isolate; background: var(--ink); min-height: 100%; }
-    /* Photo floutée en fond pour que le titre reste bien lisible */
-    .intro::before { content: ''; position: absolute; inset: 0; z-index: -2; background: var(--img) center / cover no-repeat; filter: blur(6px) brightness(.82); transform: scale(1.1); }
-    .intro::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(10,18,31,.12) 15%, rgba(10,18,31,.9) 100%); }
-    .intro .eyebrow { color: var(--sun-clair); }
-    .intro h1 { color: #fff; }
-    .accroche { color: rgba(255,255,255,.88); }
-    .cta-large { display: flex; margin-top: 18px; }
-  }
-  .btn-clair { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.6); }
-  .btn-clair:hover { background: #fff; color: var(--ink); }
-
+  .cta-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-top: 22px; }
+  .offre { padding: clamp(28px, 4vw, 56px) 0; background: var(--paper); }
   .prix { display: grid; gap: 10px; align-content: start; }
-  .formule { background: #fff; border: 1px solid var(--line); border-radius: 0; padding: 14px 16px; }
-  .f-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; }
-  .multi .f-tete { align-items: center; }
+  .formule { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
+  .f-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
   .formule h2 { font-size: 1.15rem; margin: 0 0 2px; letter-spacing: -.01em; }
   .formule p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.4; }
-  .montant { display: flex; align-items: baseline; gap: 8px; flex: none; text-align: right; }
+  .montant { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; text-align: right; }
   .montant b, .tuiles b { font-family: var(--font-title); font-weight: 700; color: var(--accent-fonce); line-height: 1; }
   .montant b { font-size: 1.75rem; }
-  .montant span { font-size: .78rem !important; color: var(--muted); white-space: nowrap; order: -1; }
+  .montant span { font-size: .78rem !important; color: var(--muted); white-space: nowrap; }
   .f-texte { margin-top: 4px !important; }
-  .tuiles { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .tuiles li { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 0; background: color-mix(in srgb, var(--accent) 8%, white); }
-  .tuiles b { font-size: 1.45rem; }
-  .tuiles span { font-size: .82rem; color: var(--text); line-height: 1.25; }
-  @media (min-width: 600px) { .tuiles { grid-template-columns: repeat(4, 1fr); } }
+  .o-titre { margin: 0 0 22px; }
+  @media (max-width: 599px) { .offre .eyebrow, .o-titre { display: none; } }
+  .reperes { list-style: none; margin: 18px 0 0; padding: 18px 22px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; border: 1px solid var(--line); border-radius: 18px; }
+  .reperes li { display: flex; gap: 12px; align-items: flex-start; font-size: .9rem; color: var(--muted); line-height: 1.4; }
+  .reperes li + li { border-left: 1px solid var(--line); padding-left: 18px; }
+  .reperes svg { flex: none; width: 28px; height: 28px; color: var(--marine); }
+  .reperes b { display: block; font-family: var(--font-title); color: var(--ink); font-size: 1rem; }
+  @media (max-width: 899px) { .reperes { grid-template-columns: 1fr 1fr; } .reperes li:nth-child(3) { border-left: 0; padding-left: 0; } }
+  @media (max-width: 499px) { .reperes { grid-template-columns: 1fr; } .reperes li + li { border-left: 0; padding-left: 0; } }
+  .offre-photo { display: block; width: 100%; aspect-ratio: 21 / 7; object-fit: cover; object-position: 50% 40%; border-radius: 18px; margin-top: 14px; }
+  @media (max-width: 599px) { .offre-photo { aspect-ratio: 16 / 9; margin-top: 8px; border-radius: 16px; } }
   @media (min-width: 900px) { .formule { padding: 16px 20px; } .formule h2 { font-size: 1.3rem; } .formule p { font-size: .92rem; } .montant b { font-size: 2rem; } }
+  /* Carte menu : sur-titre passager / aux commandes, prix alignés à droite */
+  .formule { border-top: 4px solid var(--accent); }
+  .formule:not(.multi) { border-top-color: var(--sun); }
+  .f-type { display: block; font-family: var(--font-body); font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .tuiles { list-style: none; display: block; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--line); }
+  .tuiles li { display: flex; align-items: baseline; gap: 8px; padding: 10px 0; background: none; border-radius: 0; border-bottom: 1px dashed var(--line); }
+  .tuiles li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .tuiles li span { order: -1; flex: 1; font-size: .95rem; color: var(--text); line-height: 1.3; }
+  .tuiles li b { font-size: 1.35rem; flex: none; }
+  /* Ordinateur : vol découverte à gauche, les deux formules d'initiation empilées à droite */
+  @media (min-width: 900px) { .prix { grid-template-columns: 1fr 1fr; gap: 14px; } .formule.multi { grid-row: span 2; } }
   /* Petit téléphone : on va à l'essentiel pour que les trois formules tiennent à l'écran */
   @media (max-width: 599px) {
-    .intro .eyebrow, .accroche { display: none; }
-    .intro h1 { font-size: 1.55rem; margin: 0; }
-    .offre { padding: 8px 0 20px; }
-    .offre-grid { gap: 12px; }
+    .offre { padding: 16px 0 20px; }
     .prix { gap: 8px; }
-    .formule { padding: 12px 14px; border-radius: 0; }
+    .formule { padding: 12px 14px; border-radius: 16px; }
     .montant b { font-size: 1.5rem; }
-    .tuiles { gap: 6px; margin-top: 8px; }
-    .tuiles li { flex-direction: row; align-items: baseline; gap: 8px; padding: 8px 10px; }
-    .tuiles b { font-size: 1.2rem; flex: none; }
-    .tuiles span { font-size: .78rem; }
   }
   /* Très petits téléphones (iPhone SE…) : prix au-dessus du libellé pour éviter les retours à la ligne */
   @media (max-width: 359px) {
-    .tuiles li { flex-direction: column; gap: 2px; }
-    .montant span { display: none; }
+
     .formule h2 { font-size: 1.05rem; }
   }
-  .bandeau-cadeau { display: block; background: var(--ink); color: #fff; text-decoration: none; transition: background-color .2s; }
-  .bandeau-cadeau:hover { background: #17263d; color: #fff; }
-  .bandeau-cadeau .container { display: flex; align-items: center; gap: 12px; padding-top: 10px; padding-bottom: 10px; }
-  .bandeau-cadeau :global(svg) { flex: none; width: 20px; height: 20px; color: var(--sun); }
-  .bc-texte { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; min-width: 0; font-size: .92rem; }
-  .bc-texte b { font-family: var(--font-title); font-weight: 600; font-size: 1.02rem; }
-  .bc-detail { color: rgba(255,255,255,.75); }
-  .bc-action { margin-left: auto; flex: none; padding: 6px 14px; border-radius: 0; border: 1.5px solid rgba(255,255,255,.55); font-weight: 600; font-size: .86rem; white-space: nowrap; transition: background-color .2s, color .2s; }
-  .bandeau-cadeau:hover .bc-action { background: #fff; color: var(--ink); }
-  .bc-court { display: none; }
-  @media (max-width: 899px) { .bc-detail { display: none; } }
   @media (max-width: 599px) {
-    .bandeau-cadeau .container { padding-top: 5px; padding-bottom: 5px; gap: 8px; }
-    .bandeau-cadeau :global(svg) { width: 17px; height: 17px; }
-    .bc-texte b { font-size: .92rem; }
-    .bc-long { display: none; }
-    .bc-action { padding: 3px 10px; font-size: .78rem; }
-    .bc-court { display: inline; }
   }
   .white .lead { margin-bottom: 24px; }
 
   /* Téléphone : réserver ou appeler reste toujours à portée de pouce */
   .barre-mobile { display: none; }
   @media (max-width: 899px) {
-    .barre-mobile { position: sticky; bottom: 0; z-index: 40; display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(246,242,234,.94); backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
+    .barre-mobile { position: sticky; bottom: 0; z-index: 40; display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.94); backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
     .barre-mobile .btn { justify-content: center; padding: 12px 16px; }
+    /* La barre n'arrive qu'une fois le bandeau du haut sorti de l'écran, pour ne pas doubler son bouton */
+    .barre-mobile { transition: transform .3s ease, opacity .3s ease; }
+    .barre-mobile:not(.visible) { transform: translateY(110%); opacity: 0; pointer-events: none; }
   }
 </style>

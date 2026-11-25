@@ -1,0 +1,139 @@
+---
+// Alertes météo (admin) : voir les MAA et la LVP reçus par mail sur meteo@acbt60.fr, et les arrêter à la main.
+import MembreApp from '../../layouts/MembreApp.astro';
+import Logo from '../../components/Logo.astro';
+import { url } from '../../lib/utils';
+---
+<MembreApp title="Alertes météo">
+  <div class="ecran" id="ecran" data-api={url('/membre/api/alertes-meteo')}>
+    <header class="haut">
+      <a href={url('/membre/#avions')} class="retour" aria-label="Retour à l'espace membres">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
+      </a>
+      <Logo class="logo" />
+      <span>Alertes météo</span>
+    </header>
+
+    <main class="corps">
+      <section class="carte">
+        <h2>LVP</h2>
+        <p class="sous" id="lvp-etat">Chargement…</p>
+        <button class="sec" type="button" id="lvp-off" hidden>Désactiver la LVP</button>
+      </section>
+
+      <h2 class="titre-liste">MAA en cours ou à venir</h2>
+      <p class="etat" id="etat">Chargement…</p>
+      <ol class="liste" id="liste"></ol>
+
+      <section class="carte">
+        <label for="m-mdp">Mot de passe admin</label>
+        <input id="m-mdp" type="password" autocomplete="current-password" />
+        <p class="erreur" id="erreur" role="alert" hidden></p>
+        <p class="ok" id="ok" role="status" hidden></p>
+        <p class="sous note">Arrêter une alerte la retire tout de suite de la TV et de l'appli. Un nouveau mail de l'aéroport l'affichera de nouveau.</p>
+      </section>
+    </main>
+  </div>
+</MembreApp>
+
+<script>
+  const API = document.getElementById('ecran')!.dataset.api!;
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const liste = $('liste'), etat = $('etat'), erreur = $('erreur'), ok = $('ok');
+  const mdp = $<HTMLInputElement>('m-mdp');
+  type Maa = { id: string; numero: string | null; motif: string | null; debut: string | null; fin: string | null };
+  const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  const lt = (d: string | null) => (d ? new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }) + ' LT' : '…');
+  try { mdp.value = localStorage.getItem('acbt-admin-alertes') || ''; } catch { /* privé */ }
+  const montrer = (el: HTMLElement, t: string) => { el.textContent = t; el.hidden = !t; };
+
+  async function charger() {
+    try {
+      const d = await (await fetch(API, { credentials: 'same-origin', cache: 'no-store' })).json();
+      const l: Maa[] = d.maa || [];
+      etat.hidden = l.length > 0;
+      etat.textContent = 'Aucun MAA en cours ni à venir.';
+      const n = Date.now();
+      liste.innerHTML = l.map((m) => {
+        const on = m.debut && Date.parse(m.debut) <= n;
+        return `<li class="msg${on ? ' imp' : ''}"><div class="tags"><span class="tag">MAA n°${esc(m.numero || '—')}</span><span class="tag">${on ? 'En cours' : 'À venir'}</span></div><b>${esc(m.motif || 'Avertissement d’aérodrome')}</b>
+          <div class="pied"><span>${lt(m.debut)} → ${lt(m.fin)}</span><button type="button" data-id="${esc(m.id)}">Arrêter</button></div></li>`;
+      }).join('');
+      const lvp = d.lvp;
+      $('lvp-etat').textContent = lvp == null ? 'État LVP indisponible.' : lvp.actif ? `LVP en cours depuis ${lt(lvp.depuis)}.` : 'Pas de LVP en cours.';
+      $('lvp-off').hidden = !lvp?.actif;
+    } catch { etat.hidden = false; etat.textContent = 'Impossible de charger les alertes (pas de réseau ?).'; }
+  }
+
+  async function agir(corps: object) {
+    montrer(ok, '');
+    if (!mdp.value) { montrer(erreur, 'Indiquez le mot de passe admin en bas de la page.'); mdp.focus(); return false; }
+    const r = await fetch(API, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...corps, motDePasse: mdp.value }) }).catch(() => null);
+    const d = r ? await r.json().catch(() => ({})) : {};
+    if (!r || !r.ok) { montrer(erreur, d.erreur || 'Envoi impossible (pas de réseau ?).'); return false; }
+    try { localStorage.setItem('acbt-admin-alertes', mdp.value); } catch { /* privé */ }
+    montrer(erreur, '');
+    return true;
+  }
+
+  liste.addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-id]');
+    if (!b) return;
+    b.disabled = true;
+    if (await agir({ action: 'maa', id: b.dataset.id })) { montrer(ok, 'MAA arrêté : il n’apparaît plus sur la TV ni dans l’appli.'); charger(); } else b.disabled = false;
+  });
+  $('lvp-off').addEventListener('click', async () => {
+    const b = $<HTMLButtonElement>('lvp-off');
+    b.disabled = true;
+    if (await agir({ action: 'lvp' })) { montrer(ok, 'LVP désactivée sur la TV et dans l’appli.'); charger(); }
+    b.disabled = false;
+  });
+
+  charger();
+  setInterval(charger, 60_000);
+</script>
+
+<style>
+  .ecran { min-height: 100svh; display: flex; flex-direction: column; background: var(--bg); }
+  .haut { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 10px; min-height: calc(54px + env(safe-area-inset-top, 0px)); padding: 0 16px 0 8px; padding-top: env(safe-area-inset-top, 0px); background: var(--bar); color: var(--bar-ink); }
+  .retour { display: grid; place-items: center; width: 34px; height: 34px; color: var(--bar-ic); }
+  .retour svg { width: 22px; height: 22px; }
+  .haut :global(.logo) { --logo-h: 40px; --logo-rouge: var(--bar-rouge); color: var(--bar-ink); }
+  .haut span { font-weight: 800; font-size: 1.05rem; }
+  .corps { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 18px 16px 40px; display: grid; gap: 14px; align-content: start; }
+  .carte { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px 18px; }
+  h2 { font-size: 1.1rem; margin: 0 0 4px; }
+  .titre-liste { margin-top: 10px; }
+  .sous { color: var(--muted); font-size: .9rem; margin: 0 0 8px; }
+  label { display: block; font-weight: 700; font-size: .76rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: 12px 0 6px; }
+  input[type=password], input[type=text], textarea, select { width: 100%; min-height: 46px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; font: inherit; background: var(--surface-2, var(--surface)); color: var(--ink); box-sizing: border-box; }
+  textarea { resize: vertical; }
+  .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .diff { display: grid; border-top: 1px solid var(--line); }
+  .opt { display: flex; gap: 12px; align-items: flex-start; margin: 0; padding: 12px 2px; border-bottom: 1px solid var(--line); text-transform: none; letter-spacing: 0; color: var(--ink); font-size: .95rem; cursor: pointer; }
+  .opt input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--navy); flex: none; }
+  .opt b { display: block; font-weight: 700; }
+  .opt small { display: block; color: var(--muted); font-weight: 500; font-size: .84rem; margin-top: 2px; }
+  .ok { color: var(--ok, #1f8a4c); background: var(--ok-bg, #e6f6ec); border-radius: 10px; padding: 9px 12px; margin: 12px 0 0; font-size: .9rem; font-weight: 650; }
+  .liste :global(.tags) { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  .liste :global(.tag) { font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; }
+  .coche { text-transform: none; letter-spacing: 0; font-weight: 650; font-size: .92rem; color: var(--ink); display: flex; gap: 8px; align-items: center; margin-top: 14px; }
+  input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .erreur { color: var(--bad); background: var(--bad-bg); border: 1px solid var(--bad-line); border-radius: 10px; padding: 9px 12px; margin: 12px 0 0; font-size: .9rem; }
+  .pri { width: 100%; min-height: 48px; margin-top: 16px; border: 0; border-radius: 10px; background: var(--navy); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+  .pri:disabled { opacity: .7; cursor: wait; }
+  .sec { width: 100%; min-height: 46px; margin-top: 8px; border: 1px solid var(--bad); border-radius: 10px; background: transparent; color: var(--bad); font: inherit; font-weight: 800; cursor: pointer; }
+  .sec:disabled { opacity: .6; cursor: wait; }
+  .note { margin-top: 12px; font-size: .84rem; }
+  #lvp-etat { margin: 4px 0 0; color: var(--ink); font-weight: 650; }
+  .etat { margin: 0; color: var(--muted); }
+  .liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .liste :global(.msg) { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 14px 14px 12px; }
+  .liste :global(.msg) { border-left-color: #e0982a; }
+  .liste :global(.msg.imp) { border-left-color: #c4161c; }
+  .liste :global(.msg b) { font-size: 1.02rem; }
+  .liste :global(.msg p) { margin: 6px 0 0; line-height: 1.45; overflow-wrap: anywhere; }
+  .liste :global(.pied) { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: .84rem; color: var(--muted); }
+  .liste :global(.pied button) { border: 1px solid var(--line); background: transparent; color: var(--bad); border-radius: 8px; padding: 6px 10px; font: inherit; font-weight: 700; font-size: .8rem; cursor: pointer; }
+  [hidden] { display: none !important; }
+</style>

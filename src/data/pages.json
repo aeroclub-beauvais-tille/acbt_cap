@@ -4,10 +4,6 @@
     "texte": "Depuis {annees} ans, nos instructeurs bénévoles font voler et forment des pilotes à Beauvais-Tillé.",
     "diaporama": [
       {
-        "image": "/uploads/avions/1e79623a-67a3-4a4d-be42-d1293fb5cc46-copied-media~2.jpg",
-        "legende": "Le DR400 F-GCAL devant la tour de contrôle de Beauvais-Tillé"
-      },
-      {
         "image": "/uploads/avions/dr400-120-01.jpg",
         "legende": "Aux commandes du DR400"
       },
@@ -32,7 +28,7 @@
       },
       {
         "titre": "Devenir pilote",
-        "texte": "Estimez le coût de votre formation en trois questions",
+        "texte": "À votre rythme, avec des instructeurs bénévoles",
         "image": "/uploads/actualites/2022/lache-elisa/01.jpg"
       },
       {
@@ -48,7 +44,7 @@
     },
     "formation": {
       "titre": "Et si vous deveniez pilote ?",
-      "texte": "À votre rythme, avec des instructeurs bénévoles. Commencez par un vol d'initiation, puis estimez votre budget en une minute.",
+      "texte": "À votre rythme, avec des instructeurs bénévoles. Commencez par un vol d'initiation pour découvrir le pilotage.",
       "image": "/uploads/actualites/2022/lache-elisa/01.jpg"
     },
     "atouts_titre": "Un club de passionnés",
@@ -72,31 +68,56 @@
         "lien": "/club/flotte"
       }
     ],
-    "video": ""
+    "videos_mobile": [
+      "/uploads/accueil/video-accueil-patrouille.mp4"
+    ]
   },
   "decouvrir": {
     "titre": "Votre premier vol, au-dessus de Beauvais",
-    "image": "/uploads/avions/dr400-petit-prince-02.jpg"
+    "image": "/uploads/decouvrir/bapteme-bandeau-beauvais.jpg",
+    "intertitres": {
+      "savoir": "Bon à savoir"
+    }
   },
   "formations": {
     "titre": "Devenez pilote à Beauvais-Tillé",
     "texte": "Nos instructeurs bénévoles vous accompagnent du premier vol jusqu'à la licence. Théorie, pratique et examen : tout se prépare au club.",
-    "image": "/uploads/actualites/2022/lache-elisa/01.jpg"
+    "image": "/uploads/actualites/2022/lache-elisa/01.jpg",
+    "intertitres": {
+      "licences": "Quelle licence choisir ?",
+      "avant": "Avant de vous lancer"
+    }
   },
   "flotte": {
     "titre": "{nombre} avions pour apprendre et voyager",
     "texte": "Des Robin robustes pour l'école et le voyage, et un Jodel à train classique pour se perfectionner.",
-    "image": "/uploads/avions/1e79623a-67a3-4a4d-be42-d1293fb5cc46-copied-media~2.jpg"
+    "image": "/uploads/avions/1e79623a-67a3-4a4d-be42-d1293fb5cc46-copied-media~2.jpg",
+    "intertitres": {
+      "fin": "Envie de voler avec nous ?"
+    }
   },
   "tarifs": {
     "titre": "Les tarifs du club",
     "texte": "Une association de passionnés : nos tarifs couvrent l'entretien des avions et le fonctionnement du club. Les instructeurs sont bénévoles.",
-    "image": "/uploads/avions/dr400-120-02.jpg"
+    "image": "/uploads/avions/dr400-120-02.jpg",
+    "intertitres": {
+      "heures": "Le prix de l'heure de vol",
+      "adhesion": "Devenir membre du club",
+      "formules": "Vols découverte et initiation",
+      "divers": "Fournitures et services"
+    }
   },
   "club": {
     "titre": "Une association de passionnés",
     "texte": "Fondé le {fondation}, l'ACBT est une association loi 1901 dédiée à la formation au pilotage et au vol de loisir. Ses instructeurs sont bénévoles.",
-    "image": "/uploads/historique/2012-locaux-10.jpg"
+    "image": "/uploads/historique/2012-locaux-10.jpg",
+    "intertitres": {
+      "locaux": "Nos locaux",
+      "comite": "Le comité",
+      "histoire": "Notre histoire",
+      "vie": "La vie du club",
+      "fin": "Passez nous voir au club"
+    }
   },
   "historique": {
     "titre": "Notre histoire",
@@ -110,7 +131,10 @@
   "contact": {
     "titre": "Nous contacter",
     "texte": "Pour un baptême, une inscription ou une simple question, écrivez-nous ou passez au club.",
-    "image": "/uploads/avions/20250407_160705.jpg"
+    "image": "/uploads/avions/20250407_160705.jpg",
+    "intertitres": {
+      "carte": "Où nous trouver"
+    }
   },
   "membre": {
     "titre": "Espace membre",
