@@ -19,15 +19,15 @@ const { etapes } = Astro.props;
   li::before { content: ''; position: absolute; top: 25px; left: 60px; right: -22px; height: 2px; background: color-mix(in srgb, var(--marine) 22%, white); }
   li:last-child::before { display: none; }
   .num { position: absolute; top: 0; left: 0; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--marine); color: #fff; font-family: var(--font-title); font-weight: 700; font-size: 1.05rem; box-shadow: 0 0 0 6px #fff; }
-  li:first-child .num { background: var(--sun); color: var(--marine); }
+  li:first-child .num { background: var(--rouge); color: #fff; }
   h3 { font-size: 1.15rem; margin: 0 0 8px; }
   p { margin: 0; color: var(--muted); font-size: .95rem; line-height: 1.5; }
   /* Sur le bleu foncé */
   :global(.dark) .num { background: #fff; color: var(--marine); box-shadow: 0 0 0 6px var(--marine); }
-  :global(.dark) li:first-child .num { background: var(--sun); }
+  :global(.dark) li:first-child .num { background: var(--rouge); color: #fff; }
   :global(.dark) li::before { background: rgba(255,255,255,.28); }
   :global(.dark) h3 { color: #fff; }
-  :global(.dark) p { color: #c5d2e3; }
+  :global(.dark) p { color: rgba(255,255,255,.8); }
   /* Téléphone et tablette : parcours vertical, la ligne descend le long des pastilles */
   @media (max-width: 899px) {
     .etapes { grid-template-columns: 1fr; gap: 0; }
