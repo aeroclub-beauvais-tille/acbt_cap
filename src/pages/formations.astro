@@ -141,6 +141,9 @@ const pg = pages.formations;
   .deja-sous { font-size: .95rem; color: rgba(255,255,255,.72); }
   .deja .plus { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #fff; color: var(--marine); font-size: 1.5rem; line-height: 1; transition: transform .2s; }
   .deja[open] .plus { transform: rotate(45deg); }
+  .deja .plus { position: relative; font-size: 0; }
+  .deja .plus::before, .deja .plus::after { content: ''; position: absolute; left: 50%; top: 50%; width: 16px; height: 2.5px; border-radius: 2px; background: currentColor; transform: translate(-50%, -50%); }
+  .deja .plus::after { transform: translate(-50%, -50%) rotate(90deg); }
   .deja > summary:focus-visible { outline: 2px solid #fff; outline-offset: 6px; border-radius: 8px; }
   #maintien .deja > * { color: rgba(255,255,255,.85); }
   .deja-corps { padding-top: 22px; }
