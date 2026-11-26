@@ -53,15 +53,22 @@ const pg = pages.formations;
   </section>
   {f.validite.length > 0 && (
     <section class="section dark" id="maintien">
-      <div class="container">
-        <span class="eyebrow">Une fois breveté</span>
-        <h2 data-split>{f.maintien_titre}</h2>
-        <p class="lead lead-large" data-reveal>{f.maintien_intro}</p>
+      <details class="container deja">
+        <summary>
+          <span class="deja-txt">
+            <span class="eyebrow">Déjà pilote ?</span>
+            <span class="deja-titre">{f.maintien_titre}</span>
+            <span class="deja-sous">Prorogation, renouvellement, expérience récente : les règles LAPL et PPL</span>
+          </span>
+          <span class="plus" aria-hidden="true">+</span>
+        </summary>
+        <div class="deja-corps">
+        <p class="lead lead-large">{f.maintien_intro}</p>
         <div class="vt-switch" role="group" aria-label="Choisir sa licence">
           <button type="button" data-vue="lapl" aria-pressed="true">LAPL</button>
           <button type="button" data-vue="ppl" aria-pressed="false">PPL</button>
         </div>
-        <div class="vt" data-vue="lapl" data-reveal>
+        <div class="vt" data-vue="lapl">
           <div class="vt-th" aria-hidden="true"><span></span><div class="vt-h l"><b>LAPL</b><span>Licence de pilote d'avion léger</span></div><div class="vt-h p"><b>PPL</b><span>Licence de pilote privé</span></div></div>
           {f.validite.map((v) => (
             <div class="vt-row">
@@ -92,8 +99,9 @@ const pg = pages.formations;
             </div>
           ))}
         </div>
-        <p class="notice regles-note" data-reveal>{f.maintien_note}</p>
-      </div>
+        <p class="notice regles-note">{f.maintien_note}</p>
+        </div>
+      </details>
     </section>
   )}
   {f.questions.length > 0 && (
@@ -107,6 +115,11 @@ const pg = pages.formations;
   )}
 </Base>
 <script>
+  // « Déjà pilote ? » : fermé par défaut, ouvert si on arrive par le lien #maintien
+  const deja = document.querySelector<HTMLDetailsElement>('#maintien details');
+  const ouvrirSiAncre = () => { if (deja && location.hash === '#maintien') deja.open = true; };
+  ouvrirSiAncre();
+  window.addEventListener('hashchange', ouvrirSiAncre);
   // Sélecteur LAPL / PPL (téléphone) : n'affiche que la colonne choisie
   document.querySelectorAll<HTMLElement>('#maintien').forEach((sec) => {
     const vt = sec.querySelector<HTMLElement>('.vt');
@@ -118,6 +131,20 @@ const pg = pages.formations;
 </script>
 <style>
   /* Garder sa licence valide : fond nuit, une ligne par question, colonne LAPL (bleu clair) et PPL (blanc), comme Horizon */
+  /* Accordéon « Déjà pilote ? » : bande compacte tant qu'il est fermé */
+  .section#maintien { padding: clamp(22px, 3vw, 32px) 0; }
+  .deja > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 6px 0; }
+  .deja > summary::-webkit-details-marker { display: none; }
+  .deja-txt { display: grid; gap: 4px; }
+  .deja-txt .eyebrow { margin: 0; }
+  .deja-titre { font-family: var(--font-title); font-size: clamp(1.35rem, 2.8vw, 1.9rem); font-weight: 600; color: #fff; line-height: 1.15; }
+  .deja-sous { font-size: .95rem; color: rgba(255,255,255,.72); }
+  .deja .plus { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #fff; color: var(--marine); font-size: 1.5rem; line-height: 1; transition: transform .2s; }
+  .deja[open] .plus { transform: rotate(45deg); }
+  .deja > summary:focus-visible { outline: 2px solid #fff; outline-offset: 6px; border-radius: 8px; }
+  #maintien .deja > * { color: rgba(255,255,255,.85); }
+  .deja-corps { padding-top: 22px; }
+  .section#maintien:has(.deja[open]) { padding: clamp(40px, 6vw, 72px) 0; }
   #maintien .lead { color: rgba(255,255,255,.8); }
   #maintien .eyebrow { color: rgba(255,255,255,.7); }
   #maintien .notice { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); border-left: 3px solid var(--sun); color: rgba(255,255,255,.75); }
